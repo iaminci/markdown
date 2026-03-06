@@ -26,6 +26,29 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
+/* Table styling (Cursor-like) */
+.prose table {
+  @apply w-full border-collapse;
+}
+
+.prose th,
+.prose td {
+  @apply border-b border-zinc-200 px-4 py-3 text-left dark:border-zinc-700;
+}
+
+.prose th {
+  @apply font-semibold text-zinc-900 dark:text-zinc-100;
+}
+
+.prose td {
+  @apply text-zinc-700 dark:text-zinc-300;
+}
+
+/* Inline code badge styling (Cursor-like) */
+.prose :not(pre) > code {
+  @apply rounded bg-amber-100 px-1.5 py-0.5 font-mono text-sm text-amber-900 before:content-none after:content-none dark:bg-amber-900/40 dark:text-amber-200;
+}
+
 /* Print styles */
 @media print {
   body {
