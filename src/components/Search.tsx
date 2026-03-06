@@ -3,6 +3,11 @@
 import { useCallback, useState } from "react";
 import type { Document } from "@/types/document";
 
+function getFirstHeading(content: string): string | null {
+  const match = content.match(/^#{1,6}\s+(.+)$/m);
+  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
+}
+
 interface SearchProps {
   documents: Document[];
   onSelect: (doc: Document) => void;
@@ -71,7 +76,9 @@ export function Search({ documents, onSelect }: SearchProps) {
               }}
               className="block w-full px-3 py-2 text-left text-sm hover:bg-zinc-100 dark:hover:bg-zinc-700"
             >
-              <span className="font-medium">{doc.title}</span>
+              <span className="font-medium">
+                {getFirstHeading(doc.content) ?? doc.title}
+              </span>
               <span className="ml-1 block truncate text-zinc-500 dark:text-zinc-400">
                 {doc.content.slice(0, 80).replace(/\n/g, " ")}...
               </span>

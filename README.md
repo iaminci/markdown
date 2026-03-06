@@ -13,7 +13,7 @@ A minimal markdown viewer with paste/upload support, multiple documents, and ric
 - **Dark/light theme** toggle
 - **Copy code** button on code blocks
 - **Search** across documents
-- **Print-friendly** layout
+- **Save to file** – download documents as .md files
 
 ## Quick Start
 

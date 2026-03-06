@@ -2,6 +2,11 @@
 
 import type { Document } from "@/types/document";
 
+function getFirstHeading(content: string): string | null {
+  const match = content.match(/^#{1,6}\s+(.+)$/m);
+  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
+}
+
 interface DocumentListProps {
   documents: Document[];
   currentId: string | null;
@@ -36,7 +41,7 @@ export function DocumentList({
                 : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
             }`}
           >
-            {doc.title}
+            {getFirstHeading(doc.content) ?? doc.title}
           </button>
           <button
             type="button"
