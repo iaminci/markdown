@@ -7,6 +7,7 @@ import {
   addDocument,
   deleteDocument,
 } from "@/lib/storage";
+import { EmptyState } from "@/components/EmptyState";
 import { Sidebar } from "@/components/Sidebar";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { TableOfContents } from "@/components/TableOfContents";
@@ -74,12 +75,7 @@ export default function Home() {
               <MarkdownRenderer content={currentDoc.content} />
             </div>
           ) : (
-            <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-              <p className="text-zinc-500 dark:text-zinc-400">
-                No document selected. Upload a .md file or paste markdown to get
-                started.
-              </p>
-            </div>
+            <EmptyState onLoadSample={handleAddDocument} />
           )}
         </div>
 
