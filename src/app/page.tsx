@@ -61,13 +61,15 @@ export default function Home() {
           {currentDoc ? (
             <div className="mx-auto max-w-3xl">
               <div className="mb-6 flex items-center justify-between print:mb-4">
-                <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-                  {currentDoc.title}
-                </h1>
+                {currentDoc.title.toLowerCase() !== "readme" && (
+                  <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                    {currentDoc.title}
+                  </h1>
+                )}
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800 print:hidden"
+                  className="ml-auto rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800 print:hidden"
                 >
                   Print
                 </button>
