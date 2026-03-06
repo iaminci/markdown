@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 interface TocItem {
   id: string;
   text: string;
@@ -15,8 +13,19 @@ interface TableOfContentsProps {
 function extractHeadings(markdown: string): TocItem[] {
   const headings: TocItem[] = [];
   const lines = markdown.split("\n");
+  let inCodeBlock = false;
 
   for (const line of lines) {
+    // Track fenced code blocks (```) - skip headings inside them
+    if (line.startsWith("```")) {
+      inCodeBlock = !inCodeBlock;
+      continue;
+    }
+    if (inCodeBlock) continue;
+
+    // Skip indented lines (indented code blocks)
+    if (/^\s{4,}/.test(line) || line.startsWith("\t")) continue;
+
     const match = line.match(/^(#{1,6})\s+(.+)$/);
     if (match) {
       const level = match[1].length;
@@ -34,7 +43,7 @@ function extractHeadings(markdown: string): TocItem[] {
 }
 
 export function TableOfContents({ content }: TableOfContentsProps) {
-  const headings = useMemo(() => extractHeadings(content), [content]);
+  const headings = extractHeadings(content);
 
   if (headings.length === 0) return null;
 

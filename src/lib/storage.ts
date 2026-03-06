@@ -58,15 +58,44 @@ export async function saveDocuments(documents: Document[]): Promise<void> {
   }
 }
 
+function getFirstHeading(content: string): string | null {
+  const match = content.match(/^#{1,6}\s+(.+)$/m);
+  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
+}
+
 export async function addDocument(
   doc: Omit<Document, "id" | "createdAt">
 ): Promise<Document> {
+  const documents = await getDocuments();
+  const newHeading = getFirstHeading(doc.content);
+  const titleLower = doc.title.toLowerCase();
+
+  // Replace if: same first heading OR same title (e.g. re-uploading README.md)
+  const existingIndex = documents.findIndex((d) => {
+    const headingMatch =
+      newHeading &&
+      getFirstHeading(d.content)?.toLowerCase() === newHeading.toLowerCase();
+    const titleMatch = d.title.toLowerCase() === titleLower;
+    return headingMatch || titleMatch;
+  });
+
+  if (existingIndex >= 0) {
+    const existing = documents[existingIndex];
+    const updated: Document = {
+      ...existing,
+      title: doc.title,
+      content: doc.content,
+    };
+    documents[existingIndex] = updated;
+    await saveDocuments(documents);
+    return updated;
+  }
+
   const newDoc: Document = {
     ...doc,
     id: crypto.randomUUID(),
     createdAt: Date.now(),
   };
-  const documents = await getDocuments();
   documents.unshift(newDoc);
   await saveDocuments(documents);
   return newDoc;

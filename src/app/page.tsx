@@ -1,9 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+
+function hashContent(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  }
+  return h;
+}
 import type { Document } from "@/types/document";
 import {
   getDocuments,
+  getDocument,
   addDocument,
   deleteDocument,
 } from "@/lib/storage";
@@ -65,7 +74,10 @@ export default function Home() {
       <Sidebar
         documents={documents}
         currentId={currentDoc?.id ?? null}
-        onSelectDocument={setCurrentDoc}
+        onSelectDocument={async (doc) => {
+          const fresh = await getDocument(doc.id);
+          setCurrentDoc(fresh ?? doc);
+        }}
         onDeleteDocument={handleDeleteDocument}
         onAddDocument={handleAddDocument}
       />
@@ -107,7 +119,10 @@ export default function Home() {
 
         {currentDoc && (
           <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto px-6 py-8 lg:block print:hidden">
-            <TableOfContents content={currentDoc.content} />
+            <TableOfContents
+              key={`${currentDoc.id}-${hashContent(currentDoc.content)}`}
+              content={currentDoc.content}
+            />
           </div>
         )}
       </main>

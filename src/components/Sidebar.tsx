@@ -50,7 +50,6 @@ export function Sidebar({
         onChange={handleFileChange}
         className="hidden"
       />
-
       <div className="flex items-center justify-between border-b border-zinc-200 p-3 dark:border-zinc-700">
         <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
           Documents
