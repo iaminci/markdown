@@ -43,8 +43,8 @@ vercel
 - Tailwind CSS
 - react-markdown with remark-gfm, remark-math, rehype-katex, rehype-highlight
 - Mermaid for diagrams
-- localStorage for document persistence
+- IndexedDB for document persistence
 
 ## Note
 
-Documents are stored in the browser's localStorage. They persist only on the device where they were created and are not synced across devices.
+Documents are stored in the browser's IndexedDB. They persist only on the device where they were created and are not synced across devices. Existing documents in localStorage are automatically migrated to IndexedDB on first load.

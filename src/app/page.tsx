@@ -15,13 +15,15 @@ import { TableOfContents } from "@/components/TableOfContents";
 export default function Home() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [currentDoc, setCurrentDoc] = useState<Document | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(() => {
-    setDocuments(getDocuments());
+  const refresh = useCallback(async () => {
+    const docs = await getDocuments();
+    setDocuments(docs);
   }, []);
 
   useEffect(() => {
-    refresh();
+    refresh().finally(() => setLoading(false));
   }, [refresh]);
 
   useEffect(() => {
@@ -33,18 +35,30 @@ export default function Home() {
     }
   }, [documents, currentDoc]);
 
-  const handleAddDocument = useCallback((title: string, content: string) => {
-    const doc = addDocument({ title, content });
-    setDocuments(getDocuments());
-    setCurrentDoc(doc);
-  }, []);
+  const handleAddDocument = useCallback(
+    async (title: string, content: string) => {
+      const doc = await addDocument({ title, content });
+      const updated = await getDocuments();
+      setDocuments(updated);
+      setCurrentDoc(doc);
+    },
+    []
+  );
 
-  const handleDeleteDocument = useCallback((id: string) => {
-    deleteDocument(id);
-    const updated = getDocuments();
+  const handleDeleteDocument = useCallback(async (id: string) => {
+    await deleteDocument(id);
+    const updated = await getDocuments();
     setDocuments(updated);
     setCurrentDoc((prev) => (prev?.id === id ? updated[0] ?? null : prev));
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-zinc-950">
+        <div className="text-zinc-500 dark:text-zinc-400">Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-white dark:bg-zinc-950">
