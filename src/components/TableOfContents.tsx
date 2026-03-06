@@ -39,7 +39,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   if (headings.length === 0) return null;
 
   return (
-    <nav className="sticky top-4">
+    <nav className="sticky top-0">
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
         On this page
       </h3>

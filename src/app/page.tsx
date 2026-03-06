@@ -61,7 +61,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white dark:bg-zinc-950">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-zinc-950">
       <Sidebar
         documents={documents}
         currentId={currentDoc?.id ?? null}
@@ -70,8 +70,8 @@ export default function Home() {
         onAddDocument={handleAddDocument}
       />
 
-      <main className="flex flex-1 overflow-auto">
-        <div className="min-w-0 flex-1 px-8 py-8 print:px-0">
+      <main className="flex min-w-0 flex-1 overflow-hidden">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 py-8 print:px-0">
           {currentDoc ? (
             <div className="mx-auto max-w-3xl">
               <div className="mb-6 flex items-center justify-between print:mb-4">
@@ -82,10 +82,20 @@ export default function Home() {
                 )}
                 <button
                   type="button"
-                  onClick={() => window.print()}
-                  className="ml-auto rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800 print:hidden"
+                  onClick={() => {
+                    const blob = new Blob([currentDoc.content], {
+                      type: "text/markdown",
+                    });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `${currentDoc.title.replace(/\.md$/i, "")}.md`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="ml-auto rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800"
                 >
-                  Print
+                  Save
                 </button>
               </div>
               <MarkdownRenderer content={currentDoc.content} />
@@ -96,7 +106,7 @@ export default function Home() {
         </div>
 
         {currentDoc && (
-          <div className="hidden w-48 shrink-0 px-6 py-8 lg:block print:hidden">
+          <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto px-6 py-8 lg:block print:hidden">
             <TableOfContents content={currentDoc.content} />
           </div>
         )}

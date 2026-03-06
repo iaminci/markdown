@@ -42,7 +42,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className="flex w-64 flex-col border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 print:hidden">
+    <aside className="flex min-h-0 w-64 shrink-0 flex-col overflow-hidden border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 print:hidden">
       <input
         ref={fileInputRef}
         type="file"
@@ -58,7 +58,7 @@ export function Sidebar({
         <ThemeToggle />
       </div>
 
-      <div className="flex-1 overflow-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
         <Search documents={documents} onSelect={onSelectDocument} />
 
         <div className="mt-3 flex gap-2">

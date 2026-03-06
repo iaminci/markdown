@@ -89,7 +89,7 @@ export function EmptyState({
             </li>
             <li className="flex items-center gap-3">
               <CheckIcon />
-              <span>Search, dark mode, print-friendly</span>
+              <span>Search, dark mode, save to file</span>
             </li>
           </ul>
         </div>
