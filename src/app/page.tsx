@@ -110,7 +110,7 @@ export default function Home() {
                     URL.revokeObjectURL(url);
                   }}
                 >
-                  Save
+                  Download
                 </Button>
               </div>
               <MarkdownRenderer content={currentDoc.content} />
