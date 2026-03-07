@@ -5,6 +5,10 @@ import type { Document } from "@/types/document";
 import { DocumentList } from "./DocumentList";
 import { Search } from "./Search";
 import { ThemeToggle } from "./ThemeToggle";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface SidebarProps {
   documents: Document[];
@@ -42,7 +46,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className="flex min-h-0 w-64 shrink-0 flex-col overflow-hidden border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 print:hidden">
+    <aside className="flex min-h-0 w-64 shrink-0 flex-col overflow-hidden border-r border-sidebar-border bg-sidebar print:hidden">
       <input
         ref={fileInputRef}
         type="file"
@@ -50,8 +54,8 @@ export function Sidebar({
         onChange={handleFileChange}
         className="hidden"
       />
-      <div className="flex items-center justify-between border-b border-zinc-200 p-3 dark:border-zinc-700">
-        <h2 className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+      <div className="flex items-center justify-between border-b border-sidebar-border p-3">
+        <h2 className="text-sm font-semibold text-sidebar-foreground">
           Documents
         </h2>
         <ThemeToggle />
@@ -61,20 +65,22 @@ export function Sidebar({
         <Search documents={documents} onSelect={onSelectDocument} />
 
         <div className="mt-3 flex gap-2">
-          <button
+          <Button
             type="button"
+            variant="outline"
             onClick={handleUpload}
-            className="flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+            className="flex-1"
           >
             Upload
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
             onClick={() => setShowPaste(!showPaste)}
-            className="flex-1 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium hover:bg-zinc-100 dark:border-zinc-600 dark:bg-zinc-800 dark:hover:bg-zinc-700"
+            className="flex-1"
           >
             Paste
-          </button>
+          </Button>
         </div>
 
         {showPaste && (
@@ -116,38 +122,36 @@ function PasteInput({
   };
 
   return (
-    <div className="mt-3 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-600 dark:bg-zinc-800">
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="mb-2 w-full rounded border border-zinc-200 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-900"
-      />
-      <textarea
-        placeholder="Paste markdown here..."
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        rows={4}
-        className="mb-2 w-full resize-none rounded border border-zinc-200 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-900"
-      />
-      <div className="flex justify-end gap-2">
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded px-2 py-1 text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-700"
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!value.trim()}
-          className="rounded bg-zinc-800 px-2 py-1 text-sm text-white hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-600 dark:hover:bg-zinc-500"
-        >
-          Add
-        </button>
-      </div>
-    </div>
+    <Card className="mt-3">
+      <CardContent className="pt-4">
+        <Input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="mb-2"
+        />
+        <Textarea
+          placeholder="Paste markdown here..."
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          rows={4}
+          className="mb-2"
+        />
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleSubmit}
+            disabled={!value.trim()}
+          >
+            Add
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

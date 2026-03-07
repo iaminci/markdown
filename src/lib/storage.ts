@@ -1,8 +1,14 @@
 import type { Document } from "@/types/document";
+import {
+  getSqliteDb,
+  sqlQuery,
+  saveSqliteDb,
+} from "./sqlite-db";
 import { getDb, DOCUMENTS_STORE } from "./db";
+
 const LEGACY_STORAGE_KEY = "md-viewer-documents";
 
-async function migrateFromLocalStorage(): Promise<void> {
+async function migrateFromLocalStorage(db: Awaited<ReturnType<typeof getSqliteDb>>): Promise<void> {
   if (typeof window === "undefined") return;
   try {
     const raw = localStorage.getItem(LEGACY_STORAGE_KEY);
@@ -14,29 +20,69 @@ async function migrateFromLocalStorage(): Promise<void> {
       return;
     }
 
-    const database = await getDb();
-    const tx = database.transaction(DOCUMENTS_STORE, "readwrite");
-    const store = tx.objectStore(DOCUMENTS_STORE);
-
     for (const doc of documents) {
       if (doc.id && doc.title !== undefined) {
-        await store.put(doc);
+        db.run(
+          "INSERT OR REPLACE INTO documents (id, title, content, createdAt) VALUES (?, ?, ?, ?)",
+          [doc.id, doc.title, doc.content, doc.createdAt]
+        );
       }
     }
-    await tx.done;
+    await saveSqliteDb(db);
     localStorage.removeItem(LEGACY_STORAGE_KEY);
   } catch {
-    // Migration failed, leave localStorage as-is
+    // Migration failed
   }
+}
+
+async function migrateFromIndexedDB(db: Awaited<ReturnType<typeof getSqliteDb>>): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    const oldDb = await getDb();
+    const docs = await oldDb.getAll(DOCUMENTS_STORE);
+    if (!docs || docs.length === 0) return;
+
+    for (const doc of docs as Document[]) {
+      if (doc.id && doc.title !== undefined) {
+        db.run(
+          "INSERT OR REPLACE INTO documents (id, title, content, createdAt) VALUES (?, ?, ?, ?)",
+          [doc.id, doc.title, doc.content, doc.createdAt]
+        );
+      }
+    }
+    await saveSqliteDb(db);
+    // Clear old store to avoid re-migration
+    const tx = oldDb.transaction(DOCUMENTS_STORE, "readwrite");
+    await tx.objectStore(DOCUMENTS_STORE).clear();
+    await tx.done;
+  } catch {
+    // Migration failed or old db doesn't exist
+  }
+}
+
+function getFirstHeading(content: string): string | null {
+  const match = content.match(/^#{1,6}\s+(.+)$/m);
+  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
 }
 
 export async function getDocuments(): Promise<Document[]> {
   if (typeof window === "undefined") return [];
   try {
-    await migrateFromLocalStorage();
-    const database = await getDb();
-    const docs = await database.getAll(DOCUMENTS_STORE);
-    return (docs as Document[]).sort((a, b) => b.createdAt - a.createdAt);
+    const db = await getSqliteDb();
+    await migrateFromLocalStorage(db);
+    const rows = await sqlQuery<Document>(
+      db,
+      "SELECT id, title, content, createdAt FROM documents ORDER BY createdAt DESC"
+    );
+    if (rows.length === 0) {
+      await migrateFromIndexedDB(db);
+      const migrated = await sqlQuery<Document>(
+        db,
+        "SELECT id, title, content, createdAt FROM documents ORDER BY createdAt DESC"
+      );
+      return migrated;
+    }
+    return rows;
   } catch {
     return [];
   }
@@ -45,22 +91,18 @@ export async function getDocuments(): Promise<Document[]> {
 export async function saveDocuments(documents: Document[]): Promise<void> {
   if (typeof window === "undefined") return;
   try {
-    const database = await getDb();
-    const tx = database.transaction(DOCUMENTS_STORE, "readwrite");
-    const store = tx.objectStore(DOCUMENTS_STORE);
-    await store.clear();
+    const db = await getSqliteDb();
+    db.run("DELETE FROM documents");
     for (const doc of documents) {
-      await store.put(doc);
+      db.run(
+        "INSERT INTO documents (id, title, content, createdAt) VALUES (?, ?, ?, ?)",
+        [doc.id, doc.title, doc.content, doc.createdAt]
+      );
     }
-    await tx.done;
+    await saveSqliteDb(db);
   } catch {
     // Storage full or disabled
   }
-}
-
-function getFirstHeading(content: string): string | null {
-  const match = content.match(/^#{1,6}\s+(.+)$/m);
-  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
 }
 
 export async function addDocument(
@@ -70,7 +112,6 @@ export async function addDocument(
   const newHeading = getFirstHeading(doc.content);
   const titleLower = doc.title.toLowerCase();
 
-  // Replace if: same first heading OR same title (e.g. re-uploading README.md)
   const existingIndex = documents.findIndex((d) => {
     const headingMatch =
       newHeading &&
@@ -96,8 +137,12 @@ export async function addDocument(
     id: crypto.randomUUID(),
     createdAt: Date.now(),
   };
-  documents.unshift(newDoc);
-  await saveDocuments(documents);
+  const db = await getSqliteDb();
+  db.run(
+    "INSERT INTO documents (id, title, content, createdAt) VALUES (?, ?, ?, ?)",
+    [newDoc.id, newDoc.title, newDoc.content, newDoc.createdAt]
+  );
+  await saveSqliteDb(db);
   return newDoc;
 }
 
@@ -114,11 +159,17 @@ export async function updateDocument(
 }
 
 export async function deleteDocument(id: string): Promise<void> {
-  const documents = (await getDocuments()).filter((d) => d.id !== id);
-  await saveDocuments(documents);
+  const db = await getSqliteDb();
+  db.run("DELETE FROM documents WHERE id = ?", [id]);
+  await saveSqliteDb(db);
 }
 
 export async function getDocument(id: string): Promise<Document | null> {
-  const documents = await getDocuments();
-  return documents.find((d) => d.id === id) ?? null;
+  const db = await getSqliteDb();
+  const rows = await sqlQuery<Document>(
+    db,
+    "SELECT id, title, content, createdAt FROM documents WHERE id = ?",
+    [id]
+  );
+  return rows[0] ?? null;
 }

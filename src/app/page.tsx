@@ -20,6 +20,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { Sidebar } from "@/components/Sidebar";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { TableOfContents } from "@/components/TableOfContents";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -63,14 +64,14 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-zinc-950">
-        <div className="text-zinc-500 dark:text-zinc-400">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white dark:bg-zinc-950">
+    <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar
         documents={documents}
         currentId={currentDoc?.id ?? null}
@@ -88,12 +89,15 @@ export default function Home() {
             <div className="mx-auto max-w-3xl">
               <div className="mb-6 flex items-center justify-between print:mb-4">
                 {currentDoc.title.toLowerCase() !== "readme" && (
-                  <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
+                  <h1 className="text-2xl font-semibold text-foreground">
                     {currentDoc.title}
                   </h1>
                 )}
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
                   onClick={() => {
                     const blob = new Blob([currentDoc.content], {
                       type: "text/markdown",
@@ -105,10 +109,9 @@ export default function Home() {
                     a.click();
                     URL.revokeObjectURL(url);
                   }}
-                  className="ml-auto rounded-lg border border-zinc-200 px-3 py-1.5 text-sm hover:bg-zinc-100 dark:border-zinc-600 dark:hover:bg-zinc-800"
                 >
                   Save
-                </button>
+                </Button>
               </div>
               <MarkdownRenderer content={currentDoc.content} />
             </div>

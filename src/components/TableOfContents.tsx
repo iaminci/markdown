@@ -49,10 +49,10 @@ export function TableOfContents({ content }: TableOfContentsProps) {
 
   return (
     <nav className="sticky top-0">
-      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         On this page
       </h3>
-      <ul className="space-y-1 border-l border-zinc-200 pl-3 dark:border-zinc-700">
+      <ul className="space-y-1 border-l border-border pl-3">
         {headings.map(({ id, text, level }) => (
           <li
             key={id}
@@ -61,7 +61,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
           >
             <a
               href={`#${id}`}
-              className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+              className="text-muted-foreground hover:text-foreground transition-colors"
             >
               {text}
             </a>
