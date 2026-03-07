@@ -18,8 +18,8 @@ A minimal markdown viewer with paste/upload support, multiple documents, and ric
 ## Quick Start
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
@@ -33,7 +33,7 @@ Open [http://localhost:3000](http://localhost:3000).
 Or install the Vercel CLI and run:
 
 ```bash
-npm i -g vercel
+pnpm add -g vercel
 vercel
 ```
 
