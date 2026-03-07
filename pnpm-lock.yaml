@@ -17,6 +17,9 @@ importers:
       idb:
         specifier: ^8.0.3
         version: 8.0.3
+      katex:
+        specifier: ^0.16.0
+        version: 0.16.37
       mermaid:
         specifier: ^11.12.3
         version: 11.12.3
