@@ -3,6 +3,7 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
+import { remarkTreeStructure } from "@/lib/remark-tree-structure";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
@@ -44,7 +45,9 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
       const match = /language-(\w+)/.exec(className ?? "");
       const lang = match?.[1];
       const code = String(children).replace(/\n$/, "");
-      const isBlock = Boolean(className?.includes("language-"));
+      // Block: has language class, or contains newlines (fenced block without language)
+      const isBlock =
+        Boolean(className?.includes("language-")) || /\n/.test(code);
 
       if (isBlock && isMermaidCode(lang)) {
         return <MermaidDiagram chart={code} />;
@@ -78,8 +81,12 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
     <article className="prose prose-zinc dark:prose-invert max-w-none">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex, rehypeHighlight, rehypeRaw]}
+        remarkPlugins={[remarkGfm, remarkMath, remarkTreeStructure]}
+        rehypePlugins={[
+          rehypeKatex,
+          [rehypeHighlight, { plainText: ["text", "plaintext", "txt", "tree"] }],
+          rehypeRaw,
+        ]}
         components={components}
       >
         {content}

@@ -5,7 +5,6 @@ import type { Document } from "@/types/document";
 import { WorkspaceTree } from "./WorkspaceTree";
 import { Search } from "./Search";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -405,26 +404,20 @@ function PasteInput({
   onSubmit: (title: string, content: string) => void;
 }) {
   const [value, setValue] = useState("");
-  const [title, setTitle] = useState("");
 
   const handleSubmit = () => {
-    if (!value.trim()) return;
-    onSubmit(title.trim() || "Untitled", value);
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    const firstLine = trimmed.split("\n")[0]?.trim() || "";
+    const title = firstLine || "Untitled";
+    onSubmit(title, trimmed);
     setValue("");
-    setTitle("");
     onClose();
   };
 
   return (
     <Card className="mt-3 rounded-xl border shadow-sm">
       <CardContent className="pt-4">
-        <Input
-          type="text"
-          placeholder="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="mb-2"
-        />
         <Textarea
           placeholder="Paste markdown here..."
           value={value}

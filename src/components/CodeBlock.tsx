@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface CodeBlockProps {
   className?: string;
@@ -20,8 +21,8 @@ export function CodeBlock({ className, children }: CodeBlockProps) {
 
   return (
     <div className="group relative my-4">
-      <pre className="overflow-x-auto rounded-lg bg-[#0d1117] p-4 text-sm">
-        <code className={className}>{children}</code>
+      <pre className="overflow-x-auto rounded-lg bg-[#0d1117] p-4 text-sm font-mono whitespace-pre">
+        <code className={cn("font-mono", className)}>{children}</code>
       </pre>
       <button
         type="button"

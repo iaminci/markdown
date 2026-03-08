@@ -9,6 +9,11 @@ function hashContent(s: string): number {
   }
   return h;
 }
+
+function getFirstHeading(content: string): string | null {
+  const match = content.match(/^#{1,6}\s+(.+)$/m);
+  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
+}
 import type { Document } from "@/types/document";
 import {
   getDocuments,
@@ -107,11 +112,20 @@ export default function Home() {
           {currentDoc ? (
             <div className="mx-auto max-w-3xl">
               <div className="mb-6 flex items-center justify-between print:mb-4">
-                {!/^readme(\s*\(\d+\))?$/i.test(currentDoc.title) && (
-                  <h1 className="text-2xl font-semibold text-foreground">
-                    {currentDoc.title}
-                  </h1>
-                )}
+                {(() => {
+                  const firstHeading = getFirstHeading(currentDoc.content);
+                  const titleNorm = currentDoc.title.replace(/^#+\s*/, "").trim() || currentDoc.title;
+                  const headingMatchesTitle =
+                    firstHeading &&
+                    titleNorm.toLowerCase() === firstHeading.toLowerCase();
+                  const isReadme = /^readme(\s*\(\d+\))?$/i.test(currentDoc.title);
+                  if (isReadme || headingMatchesTitle) return null;
+                  return (
+                    <h1 className="text-2xl font-semibold text-foreground">
+                      {currentDoc.title}
+                    </h1>
+                  );
+                })()}
                 <Button
                   type="button"
                   variant="outline"
