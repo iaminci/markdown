@@ -75,7 +75,7 @@ export function WorkspaceTree({
   const workspaceIds = workspaces.map((w) => w.id);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-0">
       <Accordion
         multiple
         key={workspaceIds.join(",")}
@@ -174,11 +174,11 @@ function WorkspaceSection({
   return (
     <AccordionItem
       value={workspace.id}
-      className="border-none rounded-xl bg-zinc-50/80 dark:bg-zinc-900/40 px-2 py-1 -mx-2"
+      className="border-none rounded-xl px-2 py-0 -mx-2"
     >
       <AccordionTrigger
           className={cn(
-            "group/ws flex w-full items-center rounded-xl pl-0 pr-2 py-1.5 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
+            "group/ws flex w-full items-center rounded-xl pl-0 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-amber-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
             wsDragOver && "bg-primary/15 ring-2 ring-primary/30"
           )}
           onDragOver={handleWsDragOver}
@@ -393,7 +393,7 @@ function FolderItem({
     <AccordionItem value={folder.id} className="border-none">
       <AccordionTrigger
         className={cn(
-          "group/folder flex w-full items-center rounded-xl pl-0 pr-2 py-1 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
+          "group/folder flex w-full items-center rounded-xl pl-0 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-amber-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
           folderDragOver && "bg-primary/15 ring-2 ring-primary/30"
         )}
         onDragOver={handleFolderDragOver}
@@ -522,7 +522,7 @@ function FileItem({
       onDragStart={handleDragStart}
       className={cn(
         "group flex items-center gap-1 rounded-xl pl-0 pr-1.5 py-1 transition-colors cursor-pointer",
-        isActive ? "bg-accent text-accent-foreground" : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        isActive ? "bg-accent text-accent-foreground" : "hover:bg-orange-200/50 dark:hover:bg-amber-800/30"
       )}
       onMouseEnter={() => setShowMenu(true)}
       onMouseLeave={() => setShowMenu(false)}

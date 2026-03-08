@@ -79,9 +79,12 @@ export function Sidebar({
 
   const WORKSPACE_KEY = "md-viewer-current-workspace";
 
+  const sortedWorkspaces = [...workspaces].sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+  );
   const displayedWorkspaces = selectedWorkspaceId
-    ? workspaces.filter((w) => w.id === selectedWorkspaceId)
-    : workspaces;
+    ? sortedWorkspaces.filter((w) => w.id === selectedWorkspaceId)
+    : sortedWorkspaces;
 
   const searchDocuments = selectedWorkspaceId
     ? documents.filter((d) => d.workspaceId === selectedWorkspaceId)
@@ -306,7 +309,7 @@ export function Sidebar({
               <div className="flex items-center gap-1">
                 <div className="flex-1 min-w-0">
                   <WorkspaceSwitcher
-                    workspaces={workspaces}
+                    workspaces={sortedWorkspaces}
                     selectedId={selectedWorkspaceId}
                     onSelect={handleWorkspaceSelect}
                   />
