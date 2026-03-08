@@ -6,7 +6,6 @@ import {
   sqlQuery,
   saveSqliteDb,
 } from "./sqlite-db";
-import { getDb, DOCUMENTS_STORE } from "./db";
 
 const LEGACY_STORAGE_KEY = "md-viewer-documents";
 
@@ -39,33 +38,6 @@ async function migrateFromLocalStorage(db: Awaited<ReturnType<typeof getSqliteDb
   }
 }
 
-async function migrateFromIndexedDB(db: Awaited<ReturnType<typeof getSqliteDb>>): Promise<void> {
-  if (typeof window === "undefined") return;
-  try {
-    const oldDb = await getDb();
-    const docs = await oldDb.getAll(DOCUMENTS_STORE);
-    if (!docs || docs.length === 0) return;
-
-    for (const doc of docs as Document[]) {
-      if (doc.id && doc.title !== undefined) {
-        const workspaceId = "workspaceId" in doc ? doc.workspaceId : "default";
-        const folderId = "folderId" in doc ? doc.folderId : null;
-        db.run(
-          "INSERT OR REPLACE INTO documents (id, title, content, createdAt, workspaceId, folderId) VALUES (?, ?, ?, ?, ?, ?)",
-          [doc.id, doc.title, doc.content, doc.createdAt, workspaceId, folderId]
-        );
-      }
-    }
-    await saveSqliteDb(db);
-    // Clear old store to avoid re-migration
-    const tx = oldDb.transaction(DOCUMENTS_STORE, "readwrite");
-    await tx.objectStore(DOCUMENTS_STORE).clear();
-    await tx.done;
-  } catch {
-    // Migration failed or old db doesn't exist
-  }
-}
-
 export async function getDocuments(workspaceId?: string): Promise<Document[]> {
   if (typeof window === "undefined") return [];
   try {
@@ -78,14 +50,6 @@ export async function getDocuments(workspaceId?: string): Promise<Document[]> {
     const rows = workspaceId != null
       ? await sqlQuery<Document>(db, query, [workspaceId])
       : await sqlQuery<Document>(db, query);
-    if (rows.length === 0) {
-      await migrateFromIndexedDB(db);
-      const migrated = await sqlQuery<Document>(
-        db,
-        "SELECT id, title, content, createdAt, workspaceId, folderId FROM documents ORDER BY createdAt DESC"
-      );
-      return migrated;
-    }
     return rows;
   } catch {
     return [];
