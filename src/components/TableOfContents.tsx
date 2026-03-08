@@ -61,7 +61,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
           >
             <a
               href={`#${id}`}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="block rounded-md px-1 -ml-1 text-muted-foreground hover:text-foreground hover:bg-orange-200/50 dark:hover:bg-amber-800/30 transition-colors"
             >
               {text}
             </a>

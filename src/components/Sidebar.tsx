@@ -453,13 +453,6 @@ export function Sidebar({
       <SidebarContent className="flex flex-col min-h-0 overflow-hidden">
         <div className="shrink-0 flex flex-col">
           <SidebarGroup>
-            <SidebarGroupLabel className="sr-only">Search</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <Search documents={searchDocuments} onSelect={onSelectDocument} />
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
             <SidebarGroupLabel className="sr-only">Actions</SidebarGroupLabel>
             <SidebarGroupContent>
               <div className="flex gap-1.5">
@@ -470,7 +463,7 @@ export function Sidebar({
                   onClick={() => setShowPaste(!showPaste)}
                   className="flex-1 rounded-lg"
                 >
-                  Paste
+                  Paste MD
                 </Button>
               </div>
               {showPaste && (
@@ -481,6 +474,13 @@ export function Sidebar({
                   }
                 />
               )}
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel className="sr-only">Search</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <Search documents={searchDocuments} onSelect={onSelectDocument} />
             </SidebarGroupContent>
           </SidebarGroup>
 
@@ -698,7 +698,7 @@ export function Sidebar({
             <DialogTitle>Export workspaces</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-2">
-            <label className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-muted/50">
+            <label className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-orange-200/50 dark:hover:bg-amber-800/30">
               <Checkbox
                 checked={
                   sortedWorkspaces.length > 0 &&
@@ -712,7 +712,7 @@ export function Sidebar({
               {sortedWorkspaces.map((ws) => (
                 <label
                   key={ws.id}
-                  className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 hover:bg-muted/50"
+                  className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 hover:bg-orange-200/50 dark:hover:bg-amber-800/30"
                 >
                   <Checkbox
                     checked={exportSelectedIds.has(ws.id)}

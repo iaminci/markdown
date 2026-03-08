@@ -239,12 +239,12 @@ function HomeContent() {
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">Edit document</DialogTitle>
           </DialogHeader>
-          <div className="min-h-0 flex-1 overflow-hidden py-2">
+          <div className="min-h-0 flex-1 py-2">
             <Textarea
               value={editContent}
               onChange={(e) => setEditContent(e.target.value)}
               placeholder="Markdown content..."
-              className="min-h-[50vh] w-full resize-y font-mono text-sm"
+              className="field-sizing-fixed min-h-[50vh] max-h-[60vh] w-full resize-y overflow-y-auto font-mono text-sm"
             />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
