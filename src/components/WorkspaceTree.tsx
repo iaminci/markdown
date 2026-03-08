@@ -25,7 +25,6 @@ import {
   MoreHorizontal,
   Pencil,
   Link2,
-  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -53,7 +52,6 @@ interface WorkspaceTreeProps {
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
   onRenameDocument: (id: string, title: string) => void;
-  onExportWorkspace: (workspaceId: string) => void;
 }
 
 export function WorkspaceTree({
@@ -73,7 +71,6 @@ export function WorkspaceTree({
   onRenameFolder,
   onDeleteFolder,
   onRenameDocument,
-  onExportWorkspace,
 }: WorkspaceTreeProps) {
   const workspaceIds = workspaces.map((w) => w.id);
 
@@ -105,7 +102,6 @@ export function WorkspaceTree({
             onRenameFolder={onRenameFolder}
             onDeleteFolder={onDeleteFolder}
             onRenameDocument={onRenameDocument}
-            onExportWorkspace={onExportWorkspace}
           />
         ))}
       </Accordion>
@@ -131,7 +127,6 @@ interface WorkspaceSectionProps {
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
   onRenameDocument: (id: string, title: string) => void;
-  onExportWorkspace: (workspaceId: string) => void;
 }
 
 function WorkspaceSection({
@@ -152,7 +147,6 @@ function WorkspaceSection({
   onRenameFolder,
   onDeleteFolder,
   onRenameDocument,
-  onExportWorkspace,
 }: WorkspaceSectionProps) {
   const [wsDragOver, setWsDragOver] = useState(false);
   const folderIds = folders.map((f) => f.id);
@@ -220,10 +214,6 @@ function WorkspaceSection({
                 <DropdownMenuItem onClick={() => onUploadFile(workspace.id, null)}>
                   <FileIcon className="mr-2 size-4" />
                   Upload file
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onExportWorkspace(workspace.id)}>
-                  <Download className="mr-2 size-4" />
-                  Export workspace
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onRenameWorkspace(workspace.id, workspace.name)}>
                   <Pencil className="mr-2 size-4" />

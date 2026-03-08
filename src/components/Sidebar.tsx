@@ -463,7 +463,7 @@ export function Sidebar({
                   onClick={() => setShowPaste(!showPaste)}
                   className="flex-1 rounded-lg"
                 >
-                  Paste MD
+                  Paste Markdown
                 </Button>
               </div>
               {showPaste && (
@@ -530,7 +530,6 @@ export function Sidebar({
               onRenameFolder={handleRenameFolder}
               onDeleteFolder={handleDeleteFolder}
               onRenameDocument={handleRenameDocument}
-              onExportWorkspace={handleExportWorkspace}
             />
             </SidebarGroupContent>
           </SidebarGroup>
