@@ -178,7 +178,7 @@ function WorkspaceSection({
     >
       <AccordionTrigger
           className={cn(
-            "group/ws flex w-full items-center rounded-xl pl-0 pr-2 py-2 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
+            "group/ws flex w-full items-center rounded-xl pl-0 pr-2 py-1.5 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
             wsDragOver && "bg-primary/15 ring-2 ring-primary/30"
           )}
           onDragOver={handleWsDragOver}
@@ -187,7 +187,7 @@ function WorkspaceSection({
         >
           <div className="flex flex-1 min-w-0 items-center gap-2">
             <Link2 className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
-            <span className="truncate font-medium text-left">{workspace.name}</span>
+            <span className="truncate font-bold text-left">{workspace.name}</span>
           </div>
           <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
@@ -393,7 +393,7 @@ function FolderItem({
     <AccordionItem value={folder.id} className="border-none">
       <AccordionTrigger
         className={cn(
-          "group/folder flex w-full items-center rounded-xl pl-0 pr-2 py-1.5 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
+          "group/folder flex w-full items-center rounded-xl pl-0 pr-2 py-1 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
           folderDragOver && "bg-primary/15 ring-2 ring-primary/30"
         )}
         onDragOver={handleFolderDragOver}
@@ -521,8 +521,8 @@ function FileItem({
       draggable
       onDragStart={handleDragStart}
       className={cn(
-        "group flex items-center gap-1 rounded-xl pl-0 pr-2 py-1.5 transition-colors cursor-pointer",
-        isActive ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        "group flex items-center gap-1 rounded-xl pl-0 pr-1.5 py-1 transition-colors cursor-pointer",
+        isActive ? "bg-accent text-accent-foreground" : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
       )}
       onMouseEnter={() => setShowMenu(true)}
       onMouseLeave={() => setShowMenu(false)}
@@ -537,8 +537,8 @@ function FileItem({
         variant="ghost"
         size="sm"
         className={cn(
-          "flex-1 min-w-0 justify-start gap-1.5 truncate font-normal h-7 px-2 rounded-lg",
-          isActive && "font-medium"
+          "flex-1 min-w-0 justify-start gap-1 truncate font-normal h-6 px-1.5 rounded-lg",
+          isActive && "font-bold"
         )}
       >
         <FileIcon className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
@@ -553,7 +553,7 @@ function FileItem({
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  "size-7 shrink-0 rounded-md transition-opacity",
+                  "size-6 shrink-0 rounded-md transition-opacity",
                   showMenu ? "opacity-100" : "opacity-0"
                 )}
                 onClick={(e) => e.stopPropagation()}

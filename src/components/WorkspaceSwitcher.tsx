@@ -49,7 +49,7 @@ export function WorkspaceSwitcher({
           >
             <DropdownMenuItem
               onClick={() => onSelect(null)}
-              className={cn(!selectedId && "bg-accent text-accent-foreground")}
+              className={cn(!selectedId && "bg-accent text-accent-foreground font-bold")}
             >
               <span className="truncate">All workspaces</span>
             </DropdownMenuItem>
@@ -58,7 +58,7 @@ export function WorkspaceSwitcher({
                 key={ws.id}
                 onClick={() => onSelect(ws.id)}
                 className={cn(
-                  selectedId === ws.id && "bg-accent text-accent-foreground"
+                  selectedId === ws.id && "bg-accent text-accent-foreground font-bold"
                 )}
               >
                 <span className="truncate">{ws.name}</span>
