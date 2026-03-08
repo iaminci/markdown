@@ -16,7 +16,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import {
   getWorkspaces,
@@ -241,7 +240,7 @@ export function Sidebar({
   };
 
   return (
-    <ShadcnSidebar collapsible="icon" className="print:hidden border-l-4 border-l-orange-500/50 dark:border-l-amber-400/30">
+    <ShadcnSidebar collapsible="none" className="print:hidden border-l-4 border-l-orange-500/50 dark:border-l-amber-400/30">
       <input
         ref={fileInputRef}
         type="file"
@@ -334,8 +333,6 @@ export function Sidebar({
           </SidebarGroup>
         </div>
       </SidebarContent>
-
-      <SidebarRail />
 
       <CreateNameDialog
         open={workspaceDialogOpen}

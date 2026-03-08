@@ -227,24 +227,13 @@ function WorkspaceSection({
             </DropdownMenu>
           </div>
         </AccordionTrigger>
-        <AccordionContent>
+        <AccordionContent className="pb-0">
           <WorkspaceDropArea
             workspaceId={workspace.id}
             folderId={null}
             onDrop={onMoveDocument}
-            className="flex flex-col gap-0 pt-0.5 pb-1 ml-2 pl-3 min-h-12"
+            className="flex flex-col gap-0 pt-0.5 pb-1 ml-2 pl-3"
           >
-            {documents.map((doc) => (
-              <FileItem
-                key={doc.id}
-                doc={doc}
-                isActive={currentId === doc.id}
-                onSelect={() => onSelectDocument(doc)}
-                onDelete={() => onDeleteDocument(doc.id)}
-                onRename={() => onRenameDocument(doc.id, doc.title)}
-                onMoveDocument={onMoveDocument}
-              />
-            ))}
             {folders.length > 0 && (
               <Accordion
                 multiple
@@ -273,6 +262,17 @@ function WorkspaceSection({
                 ))}
               </Accordion>
             )}
+            {documents.map((doc) => (
+              <FileItem
+                key={doc.id}
+                doc={doc}
+                isActive={currentId === doc.id}
+                onSelect={() => onSelectDocument(doc)}
+                onDelete={() => onDeleteDocument(doc.id)}
+                onRename={() => onRenameDocument(doc.id, doc.title)}
+                onMoveDocument={onMoveDocument}
+              />
+            ))}
           </WorkspaceDropArea>
         </AccordionContent>
     </AccordionItem>
@@ -442,24 +442,13 @@ function FolderItem({
           </DropdownMenu>
         </div>
       </AccordionTrigger>
-      <AccordionContent>
+      <AccordionContent className="pb-0">
         <WorkspaceDropArea
           workspaceId={workspaceId}
           folderId={folder.id}
           onDrop={onMoveDocument}
-          className="ml-0 flex flex-col gap-0 pl-0 pt-0.5 min-h-12"
+          className="ml-0 flex flex-col gap-0 pl-0 pt-0.5"
         >
-          {docs.map((doc) => (
-            <FileItem
-              key={doc.id}
-              doc={doc}
-              isActive={currentId === doc.id}
-              onSelect={() => onSelectDocument(doc)}
-              onDelete={() => onDeleteDocument(doc.id)}
-              onRename={() => onRenameDocument(doc.id, doc.title)}
-              onMoveDocument={onMoveDocument}
-            />
-          ))}
           {subfolders.length > 0 && (
             <Accordion
               multiple
@@ -488,6 +477,17 @@ function FolderItem({
                 ))}
               </Accordion>
             )}
+          {docs.map((doc) => (
+            <FileItem
+              key={doc.id}
+              doc={doc}
+              isActive={currentId === doc.id}
+              onSelect={() => onSelectDocument(doc)}
+              onDelete={() => onDeleteDocument(doc.id)}
+              onRename={() => onRenameDocument(doc.id, doc.title)}
+              onMoveDocument={onMoveDocument}
+            />
+          ))}
         </WorkspaceDropArea>
       </AccordionContent>
     </AccordionItem>

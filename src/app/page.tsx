@@ -37,7 +37,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Pencil } from "lucide-react";
 
 const CURRENT_DOC_KEY = "md-viewer-current-doc";
@@ -163,7 +163,6 @@ function HomeContent() {
 
       <SidebarInset className="min-h-0 overflow-hidden">
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
           <div className="ml-auto">
             <ThemeToggle />
           </div>
