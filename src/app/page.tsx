@@ -18,6 +18,7 @@ import {
 } from "@/lib/storage";
 import { EmptyState } from "@/components/EmptyState";
 import { Sidebar } from "@/components/Sidebar";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { TableOfContents } from "@/components/TableOfContents";
 import { Button } from "@/components/ui/button";
@@ -97,6 +98,9 @@ export default function Home() {
       <SidebarInset>
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
+          <div className="ml-auto">
+            <ThemeToggle />
+          </div>
         </header>
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 py-8 print:px-0">

@@ -4,7 +4,6 @@ import { useRef, useState, useEffect } from "react";
 import type { Document } from "@/types/document";
 import { WorkspaceTree } from "./WorkspaceTree";
 import { Search } from "./Search";
-import { ThemeToggle } from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,10 +12,8 @@ import {
   Sidebar as ShadcnSidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -26,7 +23,6 @@ import {
   getWorkspaces,
   getAllFolders,
   getDocuments,
-  getDocumentsInFolder,
   addWorkspace,
   addFolder,
   addDocument,
@@ -77,6 +73,10 @@ export function Sidebar({
   >(new Map());
   const [allDocuments, setAllDocuments] = useState<Document[]>([]);
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState<string | null>(null);
+  const [uploadTarget, setUploadTarget] = useState<{
+    workspaceId: string;
+    folderId: string | null;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const displayedWorkspaces = selectedWorkspaceId
@@ -122,18 +122,24 @@ export function Sidebar({
     refreshTreeData();
   }, [documents]);
 
-  const handleUpload = () => {
+  const handleUploadFile = (workspaceId: string, folderId: string | null) => {
+    setUploadTarget({ workspaceId, folderId });
     fileInputRef.current?.click();
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    const target = uploadTarget ?? {
+      workspaceId: selectedWorkspaceId ?? "default",
+      folderId: null,
+    };
     const reader = new FileReader();
     reader.onload = () => {
       const content = String(reader.result ?? "");
       const title = file.name.replace(/\.(md|markdown)$/i, "") || "Untitled";
-      onAddDocument(title, content, selectedWorkspaceId ?? undefined, null);
+      onAddDocument(title, content, target.workspaceId, target.folderId);
+      setUploadTarget(null);
     };
     reader.readAsText(file);
     e.target.value = "";
@@ -235,18 +241,8 @@ export function Sidebar({
     onRefresh();
   };
 
-  const handleSelectAllInWorkspace = async (workspaceId: string) => {
-    const docs = await getDocumentsInFolder(workspaceId, null);
-    if (docs.length > 0) onSelectDocument(docs[0]);
-  };
-
-  const handleSelectAllInFolder = async (workspaceId: string, folderId: string) => {
-    const docs = await getDocumentsInFolder(workspaceId, folderId);
-    if (docs.length > 0) onSelectDocument(docs[0]);
-  };
-
   return (
-    <ShadcnSidebar collapsible="icon" className="print:hidden">
+    <ShadcnSidebar collapsible="icon" className="print:hidden border-l-4 border-l-amber-500/40 dark:border-l-amber-400/30">
       <input
         ref={fileInputRef}
         type="file"
@@ -254,17 +250,6 @@ export function Sidebar({
         onChange={handleFileChange}
         className="hidden"
       />
-      <SidebarHeader>
-        <div className="flex items-center gap-2">
-          <WorkspaceSwitcher
-            workspaces={workspaces}
-            selectedId={selectedWorkspaceId}
-            onSelect={setSelectedWorkspaceId}
-          />
-          <ThemeToggle />
-        </div>
-      </SidebarHeader>
-
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="sr-only">Search</SidebarGroupLabel>
@@ -277,15 +262,6 @@ export function Sidebar({
           <SidebarGroupLabel className="sr-only">Actions</SidebarGroupLabel>
           <SidebarGroupContent>
             <div className="flex gap-1.5">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleUpload}
-                className="flex-1 rounded-lg"
-              >
-                Upload
-              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -308,22 +284,27 @@ export function Sidebar({
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Workspaces</SidebarGroupLabel>
-          <SidebarGroupAction
-            render={
+          <SidebarGroupLabel className="sr-only">Workspace</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <div className="flex items-center gap-1">
+              <div className="flex-1 min-w-0">
+                <WorkspaceSwitcher
+                  workspaces={workspaces}
+                  selectedId={selectedWorkspaceId}
+                  onSelect={setSelectedWorkspaceId}
+                />
+              </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-7"
+                className="size-7 shrink-0"
                 onClick={handleAddWorkspace}
                 title="New workspace"
               >
                 <Plus className="size-4" />
               </Button>
-            }
-          />
-          <SidebarGroupContent>
+            </div>
             <WorkspaceTree
               workspaces={displayedWorkspaces}
               folders={getFoldersSync}
@@ -334,14 +315,13 @@ export function Sidebar({
               onAddWorkspace={handleAddWorkspace}
               onAddFolder={handleAddFolder}
               onAddFile={handleAddFile}
+              onUploadFile={handleUploadFile}
               onMoveDocument={handleMoveDocument}
               onRenameWorkspace={handleRenameWorkspace}
               onDeleteWorkspace={handleDeleteWorkspace}
               onRenameFolder={handleRenameFolder}
               onDeleteFolder={handleDeleteFolder}
               onRenameDocument={handleRenameDocument}
-              onSelectAllInWorkspace={handleSelectAllInWorkspace}
-              onSelectAllInFolder={handleSelectAllInFolder}
             />
           </SidebarGroupContent>
         </SidebarGroup>

@@ -22,10 +22,8 @@ import {
   FileIcon,
   Trash2,
   Plus,
-  GripVertical,
   MoreHorizontal,
   Pencil,
-  CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -46,14 +44,13 @@ interface WorkspaceTreeProps {
   onAddWorkspace: () => void;
   onAddFolder: (workspaceId: string, parentFolderId: string | null) => void;
   onAddFile: (workspaceId: string, folderId: string | null) => void;
+  onUploadFile: (workspaceId: string, folderId: string | null) => void;
   onMoveDocument: (docId: string, workspaceId: string, folderId: string | null) => void;
   onRenameWorkspace: (id: string, name: string) => void;
   onDeleteWorkspace: (id: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
   onRenameDocument: (id: string, title: string) => void;
-  onSelectAllInWorkspace: (workspaceId: string) => void;
-  onSelectAllInFolder: (workspaceId: string, folderId: string) => void;
 }
 
 export function WorkspaceTree({
@@ -66,14 +63,13 @@ export function WorkspaceTree({
   onAddWorkspace,
   onAddFolder,
   onAddFile,
+  onUploadFile,
   onMoveDocument,
   onRenameWorkspace,
   onDeleteWorkspace,
   onRenameFolder,
   onDeleteFolder,
   onRenameDocument,
-  onSelectAllInWorkspace,
-  onSelectAllInFolder,
 }: WorkspaceTreeProps) {
   const workspaceIds = workspaces.map((w) => w.id);
 
@@ -98,14 +94,13 @@ export function WorkspaceTree({
             onDeleteDocument={onDeleteDocument}
             onAddFolder={onAddFolder}
             onAddFile={onAddFile}
+            onUploadFile={onUploadFile}
             onMoveDocument={onMoveDocument}
             onRenameWorkspace={onRenameWorkspace}
             onDeleteWorkspace={onDeleteWorkspace}
             onRenameFolder={onRenameFolder}
             onDeleteFolder={onDeleteFolder}
             onRenameDocument={onRenameDocument}
-            onSelectAllInWorkspace={onSelectAllInWorkspace}
-            onSelectAllInFolder={onSelectAllInFolder}
           />
         ))}
       </Accordion>
@@ -124,14 +119,13 @@ interface WorkspaceSectionProps {
   onDeleteDocument: (id: string) => void;
   onAddFolder: (workspaceId: string, parentFolderId: string | null) => void;
   onAddFile: (workspaceId: string, folderId: string | null) => void;
+  onUploadFile: (workspaceId: string, folderId: string | null) => void;
   onMoveDocument: (docId: string, workspaceId: string, folderId: string | null) => void;
   onRenameWorkspace: (id: string, name: string) => void;
   onDeleteWorkspace: (id: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
   onRenameDocument: (id: string, title: string) => void;
-  onSelectAllInWorkspace: (workspaceId: string) => void;
-  onSelectAllInFolder: (workspaceId: string, folderId: string) => void;
 }
 
 function WorkspaceSection({
@@ -145,14 +139,13 @@ function WorkspaceSection({
   onDeleteDocument,
   onAddFolder,
   onAddFile,
+  onUploadFile,
   onMoveDocument,
   onRenameWorkspace,
   onDeleteWorkspace,
   onRenameFolder,
   onDeleteFolder,
   onRenameDocument,
-  onSelectAllInWorkspace,
-  onSelectAllInFolder,
 }: WorkspaceSectionProps) {
   const [wsDragOver, setWsDragOver] = useState(false);
   const folderIds = folders.map((f) => f.id);
@@ -179,61 +172,58 @@ function WorkspaceSection({
 
   return (
     <AccordionItem value={workspace.id} className="border-none">
-      <div
+      <AccordionTrigger
           className={cn(
-            "group/ws flex items-center rounded-lg transition-colors",
+            "group/ws flex w-full items-center rounded-xl pl-0 pr-2 py-2 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>svg]:hidden",
             wsDragOver && "bg-primary/15 ring-2 ring-primary/30"
           )}
           onDragOver={handleWsDragOver}
           onDragLeave={handleWsDragLeave}
           onDrop={handleWsDrop}
         >
-          <AccordionTrigger className="flex-1 rounded-lg py-2 hover:no-underline hover:bg-accent/50 items-center [&>svg]:ml-auto">
-            <div className="flex items-center gap-2 min-w-0">
-              <FolderIcon className="size-4 shrink-0 text-amber-500/80" />
-              <span className="truncate font-medium text-left">{workspace.name}</span>
-            </div>
-          </AccordionTrigger>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-6 shrink-0 opacity-0 group-hover/ws:opacity-100 rounded"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreHorizontal className="size-3.5" />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end" className="rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem onClick={() => onAddFolder(workspace.id, null)}>
-                <FolderIcon className="mr-2 size-4" />
-                Add folder
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onAddFile(workspace.id, null)}>
-                <FileIcon className="mr-2 size-4" />
-                Add file
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onRenameWorkspace(workspace.id, workspace.name)}>
-                <Pencil className="mr-2 size-4" />
-                Rename
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onSelectAllInWorkspace(workspace.id)}>
-                <CheckSquare className="mr-2 size-4" />
-                Select
-              </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onClick={() => onDeleteWorkspace(workspace.id)}>
-                <Trash2 className="mr-2 size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+          <div className="flex flex-1 min-w-0 items-center">
+            <span className="truncate font-medium text-left">{workspace.name}</span>
+          </div>
+          <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                nativeButton={false}
+                render={
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/ws:opacity-100 hover:bg-sidebar-accent"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") e.preventDefault();
+                    }}
+                  >
+                    <MoreHorizontal className="size-3.5" />
+                  </div>
+                }
+              />
+              <DropdownMenuContent align="end" className="rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem onClick={() => onAddFolder(workspace.id, null)}>
+                  <FolderIcon className="mr-2 size-4" />
+                  Add folder
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onUploadFile(workspace.id, null)}>
+                  <FileIcon className="mr-2 size-4" />
+                  Upload file
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onRenameWorkspace(workspace.id, workspace.name)}>
+                  <Pencil className="mr-2 size-4" />
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={() => onDeleteWorkspace(workspace.id)}>
+                  <Trash2 className="mr-2 size-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </AccordionTrigger>
         <AccordionContent>
-          <div className="ml-3 flex flex-col gap-0 border-l-2 border-muted/50 pl-2 pt-0.5">
+          <div className="ml-0 flex flex-col gap-0 pl-0 pt-0.5">
             <DropZone
               workspaceId={workspace.id}
               folderId={null}
@@ -270,11 +260,11 @@ function WorkspaceSection({
                     onDeleteDocument={onDeleteDocument}
                     onAddFolder={onAddFolder}
                     onAddFile={onAddFile}
+                    onUploadFile={onUploadFile}
                     onMoveDocument={onMoveDocument}
                     onRenameFolder={onRenameFolder}
                     onDeleteFolder={onDeleteFolder}
                     onRenameDocument={onRenameDocument}
-                    onSelectAllInFolder={onSelectAllInFolder}
                   />
                 ))}
               </Accordion>
@@ -295,11 +285,11 @@ interface FolderItemProps {
   onDeleteDocument: (id: string) => void;
   onAddFolder: (workspaceId: string, parentFolderId: string | null) => void;
   onAddFile: (workspaceId: string, folderId: string | null) => void;
+  onUploadFile: (workspaceId: string, folderId: string | null) => void;
   onMoveDocument: (docId: string, workspaceId: string, folderId: string | null) => void;
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
   onRenameDocument: (id: string, title: string) => void;
-  onSelectAllInFolder: (workspaceId: string, folderId: string) => void;
 }
 
 function FolderItem({
@@ -312,11 +302,11 @@ function FolderItem({
   onDeleteDocument,
   onAddFolder,
   onAddFile,
+  onUploadFile,
   onMoveDocument,
   onRenameFolder,
   onDeleteFolder,
   onRenameDocument,
-  onSelectAllInFolder,
 }: FolderItemProps) {
   const subfolders = getFolders(workspaceId, folder.id);
   const docs = getDocuments(workspaceId, folder.id);
@@ -346,61 +336,59 @@ function FolderItem({
 
   return (
     <AccordionItem value={folder.id} className="border-none">
-      <div
+      <AccordionTrigger
         className={cn(
-          "group/folder flex items-center rounded-lg transition-colors",
+          "group/folder flex w-full items-center rounded-xl pl-0 pr-2 py-1.5 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>svg]:hidden",
           folderDragOver && "bg-primary/15 ring-2 ring-primary/30"
         )}
         onDragOver={handleFolderDragOver}
         onDragLeave={handleFolderDragLeave}
         onDrop={handleFolderDrop}
       >
-        <AccordionTrigger className="flex-1 rounded-lg py-1.5 hover:no-underline hover:bg-accent/50 items-center [&>svg]:ml-auto">
-          <div className="flex items-center gap-2 min-w-0">
-            <FolderIcon className="size-4 shrink-0 text-amber-500/70" />
-            <span className="truncate text-left">{folder.name}</span>
-          </div>
-        </AccordionTrigger>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-6 shrink-0 opacity-0 group-hover/folder:opacity-100 rounded"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreHorizontal className="size-3.5" />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="end" className="rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
-            <DropdownMenuItem onClick={() => onAddFolder(workspaceId, folder.id)}>
-              <FolderIcon className="mr-2 size-4" />
-              Add folder
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAddFile(workspaceId, folder.id)}>
-              <FileIcon className="mr-2 size-4" />
-              Add file
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onRenameFolder(folder.id, folder.name)}>
-              <Pencil className="mr-2 size-4" />
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onSelectAllInFolder(workspaceId, folder.id)}>
-              <CheckSquare className="mr-2 size-4" />
-              Select
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onClick={() => onDeleteFolder(folder.id)}>
-              <Trash2 className="mr-2 size-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+        <div className="flex flex-1 min-w-0 items-center gap-2">
+          <FolderIcon className="size-4 shrink-0 text-amber-500/70" />
+          <span className="truncate text-left">{folder.name}</span>
+        </div>
+        <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              nativeButton={false}
+              render={
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/folder:opacity-100 hover:bg-sidebar-accent"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") e.preventDefault();
+                  }}
+                >
+                  <MoreHorizontal className="size-3.5" />
+                </div>
+              }
+            />
+            <DropdownMenuContent align="end" className="rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={() => onAddFolder(workspaceId, folder.id)}>
+                <FolderIcon className="mr-2 size-4" />
+                Add folder
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onUploadFile(workspaceId, folder.id)}>
+                <FileIcon className="mr-2 size-4" />
+                Upload file
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onRenameFolder(folder.id, folder.name)}>
+                <Pencil className="mr-2 size-4" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onClick={() => onDeleteFolder(folder.id)}>
+                <Trash2 className="mr-2 size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </AccordionTrigger>
       <AccordionContent>
-        <div className="ml-3 flex flex-col gap-0 border-l-2 border-muted/50 pl-2 pt-0.5">
+        <div className="ml-0 flex flex-col gap-0 pl-0 pt-0.5">
           <DropZone
             workspaceId={workspaceId}
             folderId={folder.id}
@@ -437,11 +425,11 @@ function FolderItem({
                   onDeleteDocument={onDeleteDocument}
                   onAddFolder={onAddFolder}
                   onAddFile={onAddFile}
+                  onUploadFile={onUploadFile}
                   onMoveDocument={onMoveDocument}
                   onRenameFolder={onRenameFolder}
                   onDeleteFolder={onDeleteFolder}
                   onRenameDocument={onRenameDocument}
-                  onSelectAllInFolder={onSelectAllInFolder}
                 />
               ))}
             </Accordion>
@@ -518,9 +506,11 @@ function FileItem({
 
   return (
     <div
+      draggable
+      onDragStart={handleDragStart}
       className={cn(
-        "group flex items-center gap-1 rounded-lg py-1.5 transition-colors cursor-pointer",
-        isActive ? "bg-accent" : "hover:bg-accent/50"
+        "group flex items-center gap-1 rounded-xl pl-0 pr-2 py-1.5 transition-colors cursor-pointer",
+        isActive ? "bg-zinc-200 dark:bg-zinc-700" : "hover:bg-zinc-100 dark:hover:bg-zinc-800"
       )}
       onMouseEnter={() => setShowMenu(true)}
       onMouseLeave={() => setShowMenu(false)}
@@ -530,58 +520,48 @@ function FileItem({
         }
       }}
     >
-      <div
-        draggable
-        onDragStart={handleDragStart}
-        className="shrink-0 cursor-grab active:cursor-grabbing touch-none"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <GripVertical className="size-3.5 text-muted-foreground/50 opacity-0 transition-opacity group-hover:opacity-100" />
-      </div>
       <Button
         type="button"
         variant="ghost"
         size="sm"
         className={cn(
-          "flex-1 justify-start gap-1.5 truncate font-normal h-7 px-2 rounded-lg min-w-0",
+          "flex-1 min-w-0 justify-start gap-1.5 truncate font-normal h-7 px-2 rounded-lg",
           isActive && "font-medium"
         )}
       >
-        <FileIcon className="size-3.5 shrink-0 text-muted-foreground" />
+        <FileIcon className="size-4 shrink-0 text-amber-500/70" />
         <span className="truncate">{getFirstHeading(doc.content) ?? doc.title}</span>
       </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "size-7 shrink-0 rounded-md transition-opacity",
-                showMenu ? "opacity-100" : "opacity-0"
-              )}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <MoreHorizontal className="size-3.5" />
-            </Button>
-          }
-        />
-        <DropdownMenuContent align="end" className="rounded-lg shadow-lg">
-          <DropdownMenuItem onClick={onSelect}>
-            <CheckSquare className="mr-2 size-4" />
-            Select
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onRename}>
-            <Pencil className="mr-2 size-4" />
-            Rename
-          </DropdownMenuItem>
-          <DropdownMenuItem variant="destructive" onClick={onDelete}>
-            <Trash2 className="mr-2 size-4" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="ml-auto shrink-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "size-7 shrink-0 rounded-md transition-opacity",
+                  showMenu ? "opacity-100" : "opacity-0"
+                )}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="size-3.5" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end" className="rounded-lg shadow-lg">
+            <DropdownMenuItem onClick={onRename}>
+              <Pencil className="mr-2 size-4" />
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onClick={onDelete}>
+              <Trash2 className="mr-2 size-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }
