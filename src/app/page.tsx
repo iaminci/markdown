@@ -20,6 +20,7 @@ import {
   getDocuments,
   getDocument,
   addDocument,
+  updateDocument,
   deleteDocument,
 } from "@/lib/storage";
 import { EmptyState } from "@/components/EmptyState";
@@ -28,7 +29,16 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { TableOfContents } from "@/components/TableOfContents";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { Pencil } from "lucide-react";
 
 const CURRENT_DOC_KEY = "md-viewer-current-doc";
 
@@ -39,6 +49,8 @@ function HomeContent() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [currentDoc, setCurrentDoc] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editContent, setEditContent] = useState("");
 
   const refresh = useCallback(async () => {
     const docs = await getDocuments();
@@ -107,6 +119,23 @@ function HomeContent() {
     setCurrentDoc((prev) => (prev?.id === id ? updated[0] ?? null : prev));
   }, []);
 
+  const handleEditOpen = useCallback(() => {
+    if (currentDoc) {
+      setEditContent(currentDoc.content);
+      setEditOpen(true);
+    }
+  }, [currentDoc]);
+
+  const handleEditSave = useCallback(async () => {
+    if (!currentDoc) return;
+    const updated = await updateDocument(currentDoc.id, { content: editContent });
+    if (updated) {
+      setCurrentDoc(updated);
+      await refresh();
+    }
+    setEditOpen(false);
+  }, [currentDoc, editContent, refresh]);
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
@@ -143,7 +172,7 @@ function HomeContent() {
           <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-8 py-8 print:px-0">
           {currentDoc ? (
             <div className="mx-auto max-w-3xl">
-              <div className="mb-6 flex items-center justify-between print:mb-4">
+              <div className="mb-6 flex items-start justify-between gap-4 print:mb-4">
                 {(() => {
                   const firstHeading = getFirstHeading(currentDoc.content);
                   const titleNorm = currentDoc.title.replace(/^#+\s*/, "").trim() || currentDoc.title;
@@ -151,32 +180,42 @@ function HomeContent() {
                     firstHeading &&
                     titleNorm.toLowerCase() === firstHeading.toLowerCase();
                   const isReadme = /^readme(\s*\(\d+\))?$/i.test(currentDoc.title);
-                  if (isReadme || headingMatchesTitle) return null;
+                  if (isReadme || headingMatchesTitle) return <div className="min-w-0 flex-1" />;
                   return (
-                    <h1 className="text-2xl font-semibold text-foreground">
+                    <h1 className="text-2xl font-semibold text-foreground min-w-0 flex-1">
                       {currentDoc.title}
                     </h1>
                   );
                 })()}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto"
-                  onClick={() => {
-                    const blob = new Blob([currentDoc.content], {
-                      type: "text/markdown",
-                    });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `${currentDoc.title.replace(/\.md$/i, "")}.md`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  Download
-                </Button>
+                <div className="flex shrink-0 gap-2 order-last">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEditOpen}
+                  >
+                    <Pencil className="mr-1.5 size-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const blob = new Blob([currentDoc.content], {
+                        type: "text/markdown",
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement("a");
+                      a.href = url;
+                      a.download = `${currentDoc.title.replace(/\.md$/i, "")}.md`;
+                      a.click();
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download
+                  </Button>
+                </div>
               </div>
               <MarkdownRenderer content={currentDoc.content} />
             </div>
@@ -195,6 +234,28 @@ function HomeContent() {
           )}
         </div>
       </SidebarInset>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col shadow-xl ring-1 ring-border/50">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Edit document</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 overflow-hidden py-2">
+            <Textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              placeholder="Markdown content..."
+              className="min-h-[50vh] w-full resize-y font-mono text-sm"
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditSave}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   );
 }
