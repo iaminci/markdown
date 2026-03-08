@@ -24,6 +24,7 @@ import {
   Plus,
   MoreHorizontal,
   Pencil,
+  Link2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -74,7 +75,7 @@ export function WorkspaceTree({
   const workspaceIds = workspaces.map((w) => w.id);
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-3">
       <Accordion
         multiple
         key={workspaceIds.join(",")}
@@ -171,17 +172,21 @@ function WorkspaceSection({
   };
 
   return (
-    <AccordionItem value={workspace.id} className="border-none">
+    <AccordionItem
+      value={workspace.id}
+      className="border-none rounded-xl bg-zinc-50/80 dark:bg-zinc-900/40 px-2 py-1 -mx-2"
+    >
       <AccordionTrigger
           className={cn(
-            "group/ws flex w-full items-center rounded-xl pl-0 pr-2 py-2 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>svg]:hidden",
+            "group/ws flex w-full items-center rounded-xl pl-0 pr-2 py-2 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
             wsDragOver && "bg-primary/15 ring-2 ring-primary/30"
           )}
           onDragOver={handleWsDragOver}
           onDragLeave={handleWsDragLeave}
           onDrop={handleWsDrop}
         >
-          <div className="flex flex-1 min-w-0 items-center">
+          <div className="flex flex-1 min-w-0 items-center gap-2">
+            <Link2 className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
             <span className="truncate font-medium text-left">{workspace.name}</span>
           </div>
           <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -223,7 +228,7 @@ function WorkspaceSection({
           </div>
         </AccordionTrigger>
         <AccordionContent>
-          <div className="ml-0 flex flex-col gap-0 pl-0 pt-0.5">
+          <div className="flex flex-col gap-0 pt-0.5 pb-1 ml-2 pl-3 border-l-2 border-orange-200/70 dark:border-amber-800/40">
             <DropZone
               workspaceId={workspace.id}
               folderId={null}
@@ -338,7 +343,7 @@ function FolderItem({
     <AccordionItem value={folder.id} className="border-none">
       <AccordionTrigger
         className={cn(
-          "group/folder flex w-full items-center rounded-xl pl-0 pr-2 py-1.5 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>svg]:hidden",
+          "group/folder flex w-full items-center rounded-xl pl-0 pr-2 py-1.5 hover:no-underline hover:bg-zinc-100 dark:hover:bg-zinc-800 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
           folderDragOver && "bg-primary/15 ring-2 ring-primary/30"
         )}
         onDragOver={handleFolderDragOver}
@@ -346,7 +351,7 @@ function FolderItem({
         onDrop={handleFolderDrop}
       >
         <div className="flex flex-1 min-w-0 items-center gap-2">
-          <FolderIcon className="size-4 shrink-0 text-amber-500/70" />
+          <FolderIcon className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
           <span className="truncate text-left">{folder.name}</span>
         </div>
         <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -529,7 +534,7 @@ function FileItem({
           isActive && "font-medium"
         )}
       >
-        <FileIcon className="size-4 shrink-0 text-amber-500/70" />
+        <FileIcon className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
         <span className="truncate">{getFirstHeading(doc.content) ?? doc.title}</span>
       </Button>
       <div className="ml-auto shrink-0">

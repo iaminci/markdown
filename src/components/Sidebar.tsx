@@ -242,7 +242,7 @@ export function Sidebar({
   };
 
   return (
-    <ShadcnSidebar collapsible="icon" className="print:hidden border-l-4 border-l-amber-500/40 dark:border-l-amber-400/30">
+    <ShadcnSidebar collapsible="icon" className="print:hidden border-l-4 border-l-orange-500/50 dark:border-l-amber-400/30">
       <input
         ref={fileInputRef}
         type="file"

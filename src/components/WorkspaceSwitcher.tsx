@@ -36,7 +36,7 @@ export function WorkspaceSwitcher({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <SidebarMenuButton>
+              <SidebarMenuButton isActive>
                 <span className="truncate">{label}</span>
                 <ChevronDown className="ml-auto size-4 shrink-0" />
               </SidebarMenuButton>
