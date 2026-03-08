@@ -250,62 +250,70 @@ export function Sidebar({
         onChange={handleFileChange}
         className="hidden"
       />
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="sr-only">Search</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <Search documents={searchDocuments} onSelect={onSelectDocument} />
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="flex flex-col min-h-0 overflow-hidden">
+        <div className="shrink-0 flex flex-col">
+          <SidebarGroup>
+            <SidebarGroupLabel className="sr-only">Search</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <Search documents={searchDocuments} onSelect={onSelectDocument} />
+            </SidebarGroupContent>
+          </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="sr-only">Actions</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <div className="flex gap-1.5">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPaste(!showPaste)}
-                className="flex-1 rounded-lg"
-              >
-                Paste
-              </Button>
-            </div>
-            {showPaste && (
-              <PasteInput
-                onClose={() => setShowPaste(false)}
-                onSubmit={(title, content) =>
-                  onAddDocument(title, content, selectedWorkspaceId ?? undefined, null)
-                }
-              />
-            )}
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel className="sr-only">Workspace</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <div className="flex items-center gap-1">
-              <div className="flex-1 min-w-0">
-                <WorkspaceSwitcher
-                  workspaces={workspaces}
-                  selectedId={selectedWorkspaceId}
-                  onSelect={setSelectedWorkspaceId}
-                />
+          <SidebarGroup>
+            <SidebarGroupLabel className="sr-only">Actions</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <div className="flex gap-1.5">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPaste(!showPaste)}
+                  className="flex-1 rounded-lg"
+                >
+                  Paste
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-7 shrink-0"
-                onClick={handleAddWorkspace}
-                title="New workspace"
-              >
-                <Plus className="size-4" />
-              </Button>
-            </div>
-            <WorkspaceTree
+              {showPaste && (
+                <PasteInput
+                  onClose={() => setShowPaste(false)}
+                  onSubmit={(title, content) =>
+                    onAddDocument(title, content, selectedWorkspaceId ?? undefined, null)
+                  }
+                />
+              )}
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel className="sr-only">Workspace</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <div className="flex items-center gap-1">
+                <div className="flex-1 min-w-0">
+                  <WorkspaceSwitcher
+                    workspaces={workspaces}
+                    selectedId={selectedWorkspaceId}
+                    onSelect={setSelectedWorkspaceId}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-7 shrink-0"
+                  onClick={handleAddWorkspace}
+                  title="New workspace"
+                >
+                  <Plus className="size-4" />
+                </Button>
+              </div>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+          <SidebarGroup className="flex-1">
+            <SidebarGroupContent>
+              <WorkspaceTree
               workspaces={displayedWorkspaces}
               folders={getFoldersSync}
               documents={getDocumentsSync}
@@ -323,8 +331,9 @@ export function Sidebar({
               onDeleteFolder={handleDeleteFolder}
               onRenameDocument={handleRenameDocument}
             />
-          </SidebarGroupContent>
-        </SidebarGroup>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
       </SidebarContent>
 
       <SidebarRail />

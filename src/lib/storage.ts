@@ -66,11 +66,6 @@ async function migrateFromIndexedDB(db: Awaited<ReturnType<typeof getSqliteDb>>)
   }
 }
 
-function getFirstHeading(content: string): string | null {
-  const match = content.match(/^#{1,6}\s+(.+)$/m);
-  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
-}
-
 export async function getDocuments(workspaceId?: string): Promise<Document[]> {
   if (typeof window === "undefined") return [];
   try {
@@ -114,6 +109,19 @@ export async function saveDocuments(documents: Document[]): Promise<void> {
   }
 }
 
+function makeTitleUnique(
+  title: string,
+  existingTitles: string[]
+): string {
+  const lower = title.toLowerCase();
+  const existingLower = new Set(existingTitles.map((t) => t.toLowerCase()));
+  if (!existingLower.has(lower)) return title;
+  for (let n = 1; ; n++) {
+    const candidate = `${title} (${n})`;
+    if (!existingLower.has(candidate.toLowerCase())) return candidate;
+  }
+}
+
 export async function addDocument(
   doc: Omit<Document, "id" | "createdAt">,
   options?: { workspaceId?: string; folderId?: string | null }
@@ -121,37 +129,17 @@ export async function addDocument(
   const workspaceId = options?.workspaceId ?? doc.workspaceId ?? "default";
   const folderId = options?.folderId ?? doc.folderId ?? null;
 
-  const documents = await getDocuments(workspaceId);
-  const newHeading = getFirstHeading(doc.content);
-  const titleLower = doc.title.toLowerCase();
-
-  const existingIndex = documents.findIndex((d) => {
-    const sameLocation = d.folderId === folderId;
-    const headingMatch =
-      newHeading &&
-      getFirstHeading(d.content)?.toLowerCase() === newHeading.toLowerCase();
-    const titleMatch = d.title.toLowerCase() === titleLower;
-    return sameLocation && (headingMatch || titleMatch);
-  });
-
-  if (existingIndex >= 0) {
-    const existing = documents[existingIndex];
-    const updated: Document = {
-      ...existing,
-      title: doc.title,
-      content: doc.content,
-    };
-    const allDocs = await getDocuments();
-    const idx = allDocs.findIndex((d) => d.id === existing.id);
-    if (idx >= 0) {
-      allDocs[idx] = updated;
-      await saveDocuments(allDocs);
-    }
-    return updated;
-  }
+  const docsInLocation = (await getDocuments(workspaceId)).filter(
+    (d) => d.folderId === folderId
+  );
+  const uniqueTitle = makeTitleUnique(
+    doc.title,
+    docsInLocation.map((d) => d.title)
+  );
 
   const newDoc: Document = {
     ...doc,
+    title: uniqueTitle,
     id: crypto.randomUUID(),
     createdAt: Date.now(),
     workspaceId,

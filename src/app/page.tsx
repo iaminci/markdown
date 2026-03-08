@@ -82,7 +82,7 @@ export default function Home() {
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-svh overflow-hidden">
       <Sidebar
         documents={documents}
         currentId={currentDoc?.id ?? null}
@@ -95,7 +95,7 @@ export default function Home() {
         onRefresh={refresh}
       />
 
-      <SidebarInset>
+      <SidebarInset className="min-h-0 overflow-hidden">
         <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1" />
           <div className="ml-auto">
@@ -103,11 +103,11 @@ export default function Home() {
           </div>
         </header>
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 py-8 print:px-0">
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-8 py-8 print:px-0">
           {currentDoc ? (
             <div className="mx-auto max-w-3xl">
               <div className="mb-6 flex items-center justify-between print:mb-4">
-                {currentDoc.title.toLowerCase() !== "readme" && (
+                {!/^readme(\s*\(\d+\))?$/i.test(currentDoc.title) && (
                   <h1 className="text-2xl font-semibold text-foreground">
                     {currentDoc.title}
                   </h1>
@@ -140,7 +140,7 @@ export default function Home() {
           </div>
 
           {currentDoc && (
-            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto px-6 py-8 lg:block print:hidden">
+            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto overflow-x-hidden border-l border-border px-6 py-8 lg:block print:hidden">
               <TableOfContents
                 key={`${currentDoc.id}-${hashContent(currentDoc.content)}`}
                 content={currentDoc.content}
