@@ -77,6 +77,8 @@ export function Sidebar({
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const WORKSPACE_KEY = "md-viewer-current-workspace";
+
   const displayedWorkspaces = selectedWorkspaceId
     ? workspaces.filter((w) => w.id === selectedWorkspaceId)
     : workspaces;
@@ -97,6 +99,15 @@ export function Sidebar({
       })
     );
     setFoldersByWorkspace(folderMap);
+    if (typeof window !== "undefined") {
+      setSelectedWorkspaceId((prev) => {
+        if (prev !== null && prev !== undefined) return prev;
+        const stored = localStorage.getItem(WORKSPACE_KEY);
+        if (stored === "") return null;
+        if (stored && ws.some((w) => w.id === stored)) return stored;
+        return null;
+      });
+    }
   };
 
   const getFoldersSync = (workspaceId: string, parentFolderId: string | null) => {
@@ -141,6 +152,13 @@ export function Sidebar({
     };
     reader.readAsText(file);
     e.target.value = "";
+  };
+
+  const handleWorkspaceSelect = (id: string | null) => {
+    setSelectedWorkspaceId(id);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(WORKSPACE_KEY, id ?? "");
+    }
   };
 
   const handleAddWorkspace = () => setWorkspaceDialogOpen(true);
@@ -290,7 +308,7 @@ export function Sidebar({
                   <WorkspaceSwitcher
                     workspaces={workspaces}
                     selectedId={selectedWorkspaceId}
-                    onSelect={setSelectedWorkspaceId}
+                    onSelect={handleWorkspaceSelect}
                   />
                 </div>
                 <Button
