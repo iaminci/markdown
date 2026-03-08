@@ -21,6 +21,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { TableOfContents } from "@/components/TableOfContents";
 import { Button } from "@/components/ui/button";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function Home() {
   const [documents, setDocuments] = useState<Document[]>([]);
@@ -46,8 +47,17 @@ export default function Home() {
   }, [documents, currentDoc]);
 
   const handleAddDocument = useCallback(
-    async (title: string, content: string) => {
-      const doc = await addDocument({ title, content });
+    async (
+      title: string,
+      content: string,
+      workspaceId?: string,
+      folderId?: string | null
+    ) => {
+      const wsId = workspaceId ?? "default";
+      const doc = await addDocument(
+        { title, content, workspaceId: wsId, folderId: folderId ?? null },
+        { workspaceId: wsId, folderId: folderId ?? null }
+      );
       const updated = await getDocuments();
       setDocuments(updated);
       setCurrentDoc(doc);
@@ -71,7 +81,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <SidebarProvider>
       <Sidebar
         documents={documents}
         currentId={currentDoc?.id ?? null}
@@ -81,10 +91,15 @@ export default function Home() {
         }}
         onDeleteDocument={handleDeleteDocument}
         onAddDocument={handleAddDocument}
+        onRefresh={refresh}
       />
 
-      <main className="flex min-w-0 flex-1 overflow-hidden">
-        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 py-8 print:px-0">
+      <SidebarInset>
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+        </header>
+        <div className="flex min-h-0 flex-1 overflow-hidden">
+          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto px-8 py-8 print:px-0">
           {currentDoc ? (
             <div className="mx-auto max-w-3xl">
               <div className="mb-6 flex items-center justify-between print:mb-4">
@@ -118,17 +133,18 @@ export default function Home() {
           ) : (
             <EmptyState onLoadSample={handleAddDocument} />
           )}
-        </div>
-
-        {currentDoc && (
-          <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto px-6 py-8 lg:block print:hidden">
-            <TableOfContents
-              key={`${currentDoc.id}-${hashContent(currentDoc.content)}`}
-              content={currentDoc.content}
-            />
           </div>
-        )}
-      </main>
-    </div>
+
+          {currentDoc && (
+            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto px-6 py-8 lg:block print:hidden">
+              <TableOfContents
+                key={`${currentDoc.id}-${hashContent(currentDoc.content)}`}
+                content={currentDoc.content}
+              />
+            </div>
+          )}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

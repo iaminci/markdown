@@ -43,6 +43,20 @@ const SCHEMA = `
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
+    createdAt INTEGER NOT NULL,
+    workspaceId TEXT NOT NULL DEFAULT 'default',
+    folderId TEXT
+  );
+  CREATE TABLE IF NOT EXISTS workspaces (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    createdAt INTEGER NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS folders (
+    id TEXT PRIMARY KEY,
+    workspaceId TEXT NOT NULL,
+    parentFolderId TEXT,
+    name TEXT NOT NULL,
     createdAt INTEGER NOT NULL
   );
 `;
@@ -66,6 +80,25 @@ export async function getSqliteDb(): Promise<import("sql.js").Database> {
     const savedData = (await idb.get(IDB_STORE, IDB_KEY)) ?? null;
     const db = savedData ? new SQL.Database(savedData as Uint8Array) : new SQL.Database();
     db.run(SCHEMA);
+
+    // Migrate existing documents table (add workspaceId, folderId if missing)
+    try {
+      db.run("ALTER TABLE documents ADD COLUMN workspaceId TEXT NOT NULL DEFAULT 'default'");
+    } catch {
+      /* column exists */
+    }
+    try {
+      db.run("ALTER TABLE documents ADD COLUMN folderId TEXT");
+    } catch {
+      /* column exists */
+    }
+
+    // Ensure default workspace exists
+    db.run(
+      "INSERT OR IGNORE INTO workspaces (id, name, createdAt) VALUES ('default', 'Default', ?)",
+      [Date.now()]
+    );
+    debouncedSave(db);
 
     return db;
   })();

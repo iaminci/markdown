@@ -1,4 +1,6 @@
 import type { Document } from "@/types/document";
+import type { Workspace } from "@/types/workspace";
+import type { Folder } from "@/types/workspace";
 import {
   getSqliteDb,
   sqlQuery,
@@ -22,9 +24,11 @@ async function migrateFromLocalStorage(db: Awaited<ReturnType<typeof getSqliteDb
 
     for (const doc of documents) {
       if (doc.id && doc.title !== undefined) {
+        const workspaceId = "workspaceId" in doc ? doc.workspaceId : "default";
+        const folderId = "folderId" in doc ? doc.folderId : null;
         db.run(
-          "INSERT OR REPLACE INTO documents (id, title, content, createdAt) VALUES (?, ?, ?, ?)",
-          [doc.id, doc.title, doc.content, doc.createdAt]
+          "INSERT OR REPLACE INTO documents (id, title, content, createdAt, workspaceId, folderId) VALUES (?, ?, ?, ?, ?, ?)",
+          [doc.id, doc.title, doc.content, doc.createdAt, workspaceId, folderId]
         );
       }
     }
@@ -44,9 +48,11 @@ async function migrateFromIndexedDB(db: Awaited<ReturnType<typeof getSqliteDb>>)
 
     for (const doc of docs as Document[]) {
       if (doc.id && doc.title !== undefined) {
+        const workspaceId = "workspaceId" in doc ? doc.workspaceId : "default";
+        const folderId = "folderId" in doc ? doc.folderId : null;
         db.run(
-          "INSERT OR REPLACE INTO documents (id, title, content, createdAt) VALUES (?, ?, ?, ?)",
-          [doc.id, doc.title, doc.content, doc.createdAt]
+          "INSERT OR REPLACE INTO documents (id, title, content, createdAt, workspaceId, folderId) VALUES (?, ?, ?, ?, ?, ?)",
+          [doc.id, doc.title, doc.content, doc.createdAt, workspaceId, folderId]
         );
       }
     }
@@ -65,20 +71,23 @@ function getFirstHeading(content: string): string | null {
   return match ? match[1].replace(/#+\s*$/, "").trim() : null;
 }
 
-export async function getDocuments(): Promise<Document[]> {
+export async function getDocuments(workspaceId?: string): Promise<Document[]> {
   if (typeof window === "undefined") return [];
   try {
     const db = await getSqliteDb();
     await migrateFromLocalStorage(db);
-    const rows = await sqlQuery<Document>(
-      db,
-      "SELECT id, title, content, createdAt FROM documents ORDER BY createdAt DESC"
-    );
+    const query =
+      workspaceId != null
+        ? "SELECT id, title, content, createdAt, workspaceId, folderId FROM documents WHERE workspaceId = ? ORDER BY createdAt DESC"
+        : "SELECT id, title, content, createdAt, workspaceId, folderId FROM documents ORDER BY createdAt DESC";
+    const rows = workspaceId != null
+      ? await sqlQuery<Document>(db, query, [workspaceId])
+      : await sqlQuery<Document>(db, query);
     if (rows.length === 0) {
       await migrateFromIndexedDB(db);
       const migrated = await sqlQuery<Document>(
         db,
-        "SELECT id, title, content, createdAt FROM documents ORDER BY createdAt DESC"
+        "SELECT id, title, content, createdAt, workspaceId, folderId FROM documents ORDER BY createdAt DESC"
       );
       return migrated;
     }
@@ -95,8 +104,8 @@ export async function saveDocuments(documents: Document[]): Promise<void> {
     db.run("DELETE FROM documents");
     for (const doc of documents) {
       db.run(
-        "INSERT INTO documents (id, title, content, createdAt) VALUES (?, ?, ?, ?)",
-        [doc.id, doc.title, doc.content, doc.createdAt]
+        "INSERT INTO documents (id, title, content, createdAt, workspaceId, folderId) VALUES (?, ?, ?, ?, ?, ?)",
+        [doc.id, doc.title, doc.content, doc.createdAt, doc.workspaceId, doc.folderId]
       );
     }
     await saveSqliteDb(db);
@@ -106,18 +115,23 @@ export async function saveDocuments(documents: Document[]): Promise<void> {
 }
 
 export async function addDocument(
-  doc: Omit<Document, "id" | "createdAt">
+  doc: Omit<Document, "id" | "createdAt">,
+  options?: { workspaceId?: string; folderId?: string | null }
 ): Promise<Document> {
-  const documents = await getDocuments();
+  const workspaceId = options?.workspaceId ?? doc.workspaceId ?? "default";
+  const folderId = options?.folderId ?? doc.folderId ?? null;
+
+  const documents = await getDocuments(workspaceId);
   const newHeading = getFirstHeading(doc.content);
   const titleLower = doc.title.toLowerCase();
 
   const existingIndex = documents.findIndex((d) => {
+    const sameLocation = d.folderId === folderId;
     const headingMatch =
       newHeading &&
       getFirstHeading(d.content)?.toLowerCase() === newHeading.toLowerCase();
     const titleMatch = d.title.toLowerCase() === titleLower;
-    return headingMatch || titleMatch;
+    return sameLocation && (headingMatch || titleMatch);
   });
 
   if (existingIndex >= 0) {
@@ -127,8 +141,12 @@ export async function addDocument(
       title: doc.title,
       content: doc.content,
     };
-    documents[existingIndex] = updated;
-    await saveDocuments(documents);
+    const allDocs = await getDocuments();
+    const idx = allDocs.findIndex((d) => d.id === existing.id);
+    if (idx >= 0) {
+      allDocs[idx] = updated;
+      await saveDocuments(allDocs);
+    }
     return updated;
   }
 
@@ -136,11 +154,13 @@ export async function addDocument(
     ...doc,
     id: crypto.randomUUID(),
     createdAt: Date.now(),
+    workspaceId,
+    folderId,
   };
   const db = await getSqliteDb();
   db.run(
-    "INSERT INTO documents (id, title, content, createdAt) VALUES (?, ?, ?, ?)",
-    [newDoc.id, newDoc.title, newDoc.content, newDoc.createdAt]
+    "INSERT INTO documents (id, title, content, createdAt, workspaceId, folderId) VALUES (?, ?, ?, ?, ?, ?)",
+    [newDoc.id, newDoc.title, newDoc.content, newDoc.createdAt, workspaceId, folderId]
   );
   await saveSqliteDb(db);
   return newDoc;
@@ -158,17 +178,183 @@ export async function updateDocument(
   return documents[index];
 }
 
+export async function moveDocument(
+  id: string,
+  workspaceId: string,
+  folderId: string | null
+): Promise<Document | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const db = await getSqliteDb();
+    db.run(
+      "UPDATE documents SET workspaceId = ?, folderId = ? WHERE id = ?",
+      [workspaceId, folderId, id]
+    );
+    await saveSqliteDb(db);
+    return getDocument(id);
+  } catch {
+    return null;
+  }
+}
+
+export async function getWorkspaces(): Promise<Workspace[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const db = await getSqliteDb();
+    return await sqlQuery<Workspace>(
+      db,
+      "SELECT id, name, createdAt FROM workspaces ORDER BY createdAt ASC"
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function addWorkspace(name: string): Promise<Workspace> {
+  const ws: Workspace = {
+    id: crypto.randomUUID(),
+    name,
+    createdAt: Date.now(),
+  };
+  const db = await getSqliteDb();
+  db.run(
+    "INSERT INTO workspaces (id, name, createdAt) VALUES (?, ?, ?)",
+    [ws.id, ws.name, ws.createdAt]
+  );
+  await saveSqliteDb(db);
+  return ws;
+}
+
+export async function updateWorkspace(id: string, name: string): Promise<void> {
+  const db = await getSqliteDb();
+  db.run("UPDATE workspaces SET name = ? WHERE id = ?", [name, id]);
+  await saveSqliteDb(db);
+}
+
+export async function deleteWorkspace(id: string): Promise<void> {
+  const db = await getSqliteDb();
+  db.run("DELETE FROM workspaces WHERE id = ?", [id]);
+  db.run("DELETE FROM folders WHERE workspaceId = ?", [id]);
+  db.run("DELETE FROM documents WHERE workspaceId = ?", [id]);
+  await saveSqliteDb(db);
+}
+
+export async function updateFolder(id: string, name: string): Promise<void> {
+  const db = await getSqliteDb();
+  db.run("UPDATE folders SET name = ? WHERE id = ?", [name, id]);
+  await saveSqliteDb(db);
+}
+
+export async function getAllFolders(workspaceId: string): Promise<Folder[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const db = await getSqliteDb();
+    return await sqlQuery<Folder>(
+      db,
+      "SELECT id, workspaceId, parentFolderId, name, createdAt FROM folders WHERE workspaceId = ? ORDER BY name ASC",
+      [workspaceId]
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function getFolders(workspaceId: string, parentFolderId: string | null = null): Promise<Folder[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const db = await getSqliteDb();
+    if (parentFolderId === null) {
+      return await sqlQuery<Folder>(
+        db,
+        "SELECT id, workspaceId, parentFolderId, name, createdAt FROM folders WHERE workspaceId = ? AND parentFolderId IS NULL ORDER BY name ASC",
+        [workspaceId]
+      );
+    }
+    return await sqlQuery<Folder>(
+      db,
+      "SELECT id, workspaceId, parentFolderId, name, createdAt FROM folders WHERE workspaceId = ? AND parentFolderId = ? ORDER BY name ASC",
+      [workspaceId, parentFolderId]
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function addFolder(
+  workspaceId: string,
+  name: string,
+  parentFolderId: string | null = null
+): Promise<Folder> {
+  const folder: Folder = {
+    id: crypto.randomUUID(),
+    workspaceId,
+    parentFolderId,
+    name,
+    createdAt: Date.now(),
+  };
+  const db = await getSqliteDb();
+  db.run(
+    "INSERT INTO folders (id, workspaceId, parentFolderId, name, createdAt) VALUES (?, ?, ?, ?, ?)",
+    [folder.id, folder.workspaceId, folder.parentFolderId, folder.name, folder.createdAt]
+  );
+  await saveSqliteDb(db);
+  return folder;
+}
+
+async function collectFolderIds(db: Awaited<ReturnType<typeof getSqliteDb>>, parentId: string): Promise<string[]> {
+  const children = await sqlQuery<{ id: string }>(db, "SELECT id FROM folders WHERE parentFolderId = ?", [parentId]);
+  const ids = [parentId];
+  for (const c of children) {
+    ids.push(...(await collectFolderIds(db, c.id)));
+  }
+  return ids;
+}
+
+export async function deleteFolder(id: string): Promise<void> {
+  const db = await getSqliteDb();
+  const ids = await collectFolderIds(db, id);
+  for (const folderId of ids) {
+    db.run("DELETE FROM documents WHERE folderId = ?", [folderId]);
+    db.run("DELETE FROM folders WHERE id = ?", [folderId]);
+  }
+  await saveSqliteDb(db);
+}
+
 export async function deleteDocument(id: string): Promise<void> {
   const db = await getSqliteDb();
   db.run("DELETE FROM documents WHERE id = ?", [id]);
   await saveSqliteDb(db);
 }
 
+export async function getDocumentsInFolder(
+  workspaceId: string,
+  folderId: string | null
+): Promise<Document[]> {
+  if (typeof window === "undefined") return [];
+  try {
+    const db = await getSqliteDb();
+    if (folderId === null) {
+      return await sqlQuery<Document>(
+        db,
+        "SELECT id, title, content, createdAt, workspaceId, folderId FROM documents WHERE workspaceId = ? AND folderId IS NULL ORDER BY createdAt DESC",
+        [workspaceId]
+      );
+    }
+    return await sqlQuery<Document>(
+      db,
+      "SELECT id, title, content, createdAt, workspaceId, folderId FROM documents WHERE workspaceId = ? AND folderId = ? ORDER BY createdAt DESC",
+      [workspaceId, folderId]
+    );
+  } catch {
+    return [];
+  }
+}
+
 export async function getDocument(id: string): Promise<Document | null> {
   const db = await getSqliteDb();
   const rows = await sqlQuery<Document>(
     db,
-    "SELECT id, title, content, createdAt FROM documents WHERE id = ?",
+    "SELECT id, title, content, createdAt, workspaceId, folderId FROM documents WHERE id = ?",
     [id]
   );
   return rows[0] ?? null;
