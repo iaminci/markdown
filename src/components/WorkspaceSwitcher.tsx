@@ -12,7 +12,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { ChevronDown, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ChevronDown } from "lucide-react";
 
 interface WorkspaceSwitcherProps {
   workspaces: Workspace[];
@@ -46,24 +47,20 @@ export function WorkspaceSwitcher({
             align="start"
             className="w-[--radix-popper-anchor-width] min-w-48"
           >
-            <DropdownMenuItem onClick={() => onSelect(null)}>
-              {!selectedId ? (
-                <Check className="mr-2 size-4" />
-              ) : (
-                <span className="mr-2 size-4" />
-              )}
-              All workspaces
+            <DropdownMenuItem
+              onClick={() => onSelect(null)}
+              className={cn(!selectedId && "bg-accent text-accent-foreground")}
+            >
+              <span className="truncate">All workspaces</span>
             </DropdownMenuItem>
             {workspaces.map((ws) => (
               <DropdownMenuItem
                 key={ws.id}
                 onClick={() => onSelect(ws.id)}
-              >
-                {selectedId === ws.id ? (
-                  <Check className="mr-2 size-4" />
-                ) : (
-                  <span className="mr-2 size-4" />
+                className={cn(
+                  selectedId === ws.id && "bg-accent text-accent-foreground"
                 )}
+              >
                 <span className="truncate">{ws.name}</span>
               </DropdownMenuItem>
             ))}

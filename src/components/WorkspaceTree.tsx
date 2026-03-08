@@ -228,13 +228,12 @@ function WorkspaceSection({
           </div>
         </AccordionTrigger>
         <AccordionContent>
-          <div className="flex flex-col gap-0 pt-0.5 pb-1 ml-2 pl-3 border-l-2 border-orange-200/70 dark:border-amber-800/40">
-            <DropZone
-              workspaceId={workspace.id}
-              folderId={null}
-              onDrop={onMoveDocument}
-              className="min-h-[2px] rounded py-0"
-            />
+          <WorkspaceDropArea
+            workspaceId={workspace.id}
+            folderId={null}
+            onDrop={onMoveDocument}
+            className="flex flex-col gap-0 pt-0.5 pb-1 ml-2 pl-3 min-h-12"
+          >
             {documents.map((doc) => (
               <FileItem
                 key={doc.id}
@@ -274,9 +273,60 @@ function WorkspaceSection({
                 ))}
               </Accordion>
             )}
-          </div>
+          </WorkspaceDropArea>
         </AccordionContent>
     </AccordionItem>
+  );
+}
+
+function WorkspaceDropArea({
+  workspaceId,
+  folderId,
+  onDrop,
+  className,
+  children,
+}: {
+  workspaceId: string;
+  folderId: string | null;
+  onDrop: (docId: string, workspaceId: string, folderId: string | null) => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = "move";
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation();
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+    const docId = e.dataTransfer.getData(DRAG_TYPE);
+    if (docId) onDrop(docId, workspaceId, folderId);
+  };
+
+  return (
+    <div
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={cn(
+        "transition-all duration-150 rounded-lg",
+        isDragOver && "bg-primary/15 ring-2 ring-primary/30 ring-inset",
+        className
+      )}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -393,13 +443,12 @@ function FolderItem({
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="ml-0 flex flex-col gap-0 pl-0 pt-0.5">
-          <DropZone
-            workspaceId={workspaceId}
-            folderId={folder.id}
-            onDrop={onMoveDocument}
-            className="min-h-[2px] rounded py-0"
-          />
+        <WorkspaceDropArea
+          workspaceId={workspaceId}
+          folderId={folder.id}
+          onDrop={onMoveDocument}
+          className="ml-0 flex flex-col gap-0 pl-0 pt-0.5 min-h-12"
+        >
           {docs.map((doc) => (
             <FileItem
               key={doc.id}
@@ -436,54 +485,12 @@ function FolderItem({
                   onDeleteFolder={onDeleteFolder}
                   onRenameDocument={onRenameDocument}
                 />
-              ))}
-            </Accordion>
-          )}
-        </div>
+                ))}
+              </Accordion>
+            )}
+        </WorkspaceDropArea>
       </AccordionContent>
     </AccordionItem>
-  );
-}
-
-function DropZone({
-  workspaceId,
-  folderId,
-  onDrop,
-  className,
-}: {
-  workspaceId: string;
-  folderId: string | null;
-  onDrop: (docId: string, workspaceId: string, folderId: string | null) => void;
-  className?: string;
-}) {
-  const [isDragOver, setIsDragOver] = useState(false);
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
-    setIsDragOver(true);
-  };
-
-  const handleDragLeave = () => setIsDragOver(false);
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const docId = e.dataTransfer.getData(DRAG_TYPE);
-    if (docId) onDrop(docId, workspaceId, folderId);
-  };
-
-  return (
-    <div
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className={cn(
-        "transition-all duration-150",
-        isDragOver && "min-h-8 bg-primary/15 rounded-md border-2 border-dashed border-primary/40",
-        className
-      )}
-    />
   );
 }
 
