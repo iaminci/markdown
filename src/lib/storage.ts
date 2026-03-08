@@ -227,6 +227,19 @@ export async function deleteWorkspace(id: string): Promise<void> {
   await saveSqliteDb(db);
 }
 
+export async function deleteAllData(): Promise<void> {
+  if (typeof window === "undefined") return;
+  const db = await getSqliteDb();
+  db.run("DELETE FROM documents");
+  db.run("DELETE FROM folders");
+  db.run("DELETE FROM workspaces");
+  db.run(
+    "INSERT INTO workspaces (id, name, createdAt) VALUES ('default', 'Default', ?)",
+    [Date.now()]
+  );
+  await saveSqliteDb(db);
+}
+
 export async function updateFolder(id: string, name: string): Promise<void> {
   const db = await getSqliteDb();
   db.run("UPDATE folders SET name = ? WHERE id = ?", [name, id]);
@@ -346,4 +359,180 @@ export async function getDocument(id: string): Promise<Document | null> {
     [id]
   );
   return rows[0] ?? null;
+}
+
+export interface WorkspaceExport {
+  version: number;
+  exportedAt: number;
+  workspace: Workspace;
+  folders: Folder[];
+  documents: Document[];
+}
+
+export async function exportWorkspaceData(workspaceId: string): Promise<WorkspaceExport | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const [workspaces, folders, documents] = await Promise.all([
+      getWorkspaces(),
+      getAllFolders(workspaceId),
+      getDocuments(workspaceId),
+    ]);
+    const workspace = workspaces.find((w) => w.id === workspaceId);
+    if (!workspace) return null;
+    return {
+      version: 1,
+      exportedAt: Date.now(),
+      workspace,
+      folders,
+      documents,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export interface AllWorkspacesExport {
+  version: number;
+  exportedAt: number;
+  type: "all";
+  workspaces: WorkspaceExport[];
+}
+
+export async function exportAllWorkspacesData(): Promise<AllWorkspacesExport | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const workspaces = await getWorkspaces();
+    const exports: WorkspaceExport[] = [];
+    for (const ws of workspaces) {
+      const data = await exportWorkspaceData(ws.id);
+      if (data) exports.push(data);
+    }
+    return {
+      version: 1,
+      exportedAt: Date.now(),
+      type: "all",
+      workspaces: exports,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function exportWorkspacesData(
+  workspaceIds: string[]
+): Promise<AllWorkspacesExport | null> {
+  if (typeof window === "undefined" || workspaceIds.length === 0) return null;
+  try {
+    const exports: WorkspaceExport[] = [];
+    for (const id of workspaceIds) {
+      const data = await exportWorkspaceData(id);
+      if (data) exports.push(data);
+    }
+    if (exports.length === 0) return null;
+    return {
+      version: 1,
+      exportedAt: Date.now(),
+      type: "all",
+      workspaces: exports,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function importWorkspaceData(
+  data: WorkspaceExport
+): Promise<{ workspace: Workspace } | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const db = await getSqliteDb();
+    const existingWorkspaces = await getWorkspaces();
+    const existingByName = new Map(existingWorkspaces.map((w) => [w.name.toLowerCase(), w]));
+    const targetWorkspace = existingByName.get(data.workspace.name.toLowerCase());
+    let targetWorkspaceId: string;
+    let targetWorkspaceObj: Workspace;
+
+    if (targetWorkspace) {
+      targetWorkspaceId = targetWorkspace.id;
+      targetWorkspaceObj = targetWorkspace;
+    } else {
+      targetWorkspaceId = crypto.randomUUID();
+      targetWorkspaceObj = {
+        id: targetWorkspaceId,
+        name: data.workspace.name,
+        createdAt: Date.now(),
+      };
+      db.run(
+        "INSERT INTO workspaces (id, name, createdAt) VALUES (?, ?, ?)",
+        [targetWorkspaceObj.id, targetWorkspaceObj.name, targetWorkspaceObj.createdAt]
+      );
+    }
+
+    const existingDocsInWorkspace = await getDocuments(targetWorkspaceId);
+    const titlesByFolder = new Map<string | null, Set<string>>();
+    for (const d of existingDocsInWorkspace) {
+      const key = d.folderId;
+      if (!titlesByFolder.has(key)) titlesByFolder.set(key, new Set());
+      titlesByFolder.get(key)!.add(d.title.toLowerCase());
+    }
+
+    const oldToNewFolderId = new Map<string, string>();
+    const folderById = new Map(data.folders.map((f) => [f.id, f]));
+    const childrenByParent = new Map<string | null, Folder[]>();
+    for (const f of data.folders) {
+      const key = f.parentFolderId;
+      if (!childrenByParent.has(key)) childrenByParent.set(key, []);
+      childrenByParent.get(key)!.push(f);
+    }
+    const queue: (string | null)[] = [null];
+    const sortedFolders: Folder[] = [];
+    while (queue.length > 0) {
+      const parentId = queue.shift()!;
+      const children = childrenByParent.get(parentId) ?? [];
+      for (const folder of children) {
+        sortedFolders.push(folder);
+        queue.push(folder.id);
+      }
+    }
+    for (const folder of sortedFolders) {
+      const newFolderId = crypto.randomUUID();
+      const newParentId =
+        folder.parentFolderId === null
+          ? null
+          : oldToNewFolderId.get(folder.parentFolderId) ?? null;
+      oldToNewFolderId.set(folder.id, newFolderId);
+      db.run(
+        "INSERT INTO folders (id, workspaceId, parentFolderId, name, createdAt) VALUES (?, ?, ?, ?, ?)",
+        [newFolderId, targetWorkspaceId, newParentId, folder.name, Date.now()]
+      );
+    }
+
+    for (const doc of data.documents) {
+      const newDocId = crypto.randomUUID();
+      const newFolderId =
+        doc.folderId === null ? null : oldToNewFolderId.get(doc.folderId) ?? null;
+      const existingTitles = Array.from(titlesByFolder.get(newFolderId) ?? []);
+      const uniqueTitle = makeTitleUnique(doc.title, existingTitles);
+      titlesByFolder.set(newFolderId, new Set([...titlesByFolder.get(newFolderId) ?? [], uniqueTitle.toLowerCase()]));
+      db.run(
+        "INSERT INTO documents (id, title, content, createdAt, workspaceId, folderId) VALUES (?, ?, ?, ?, ?, ?)",
+        [newDocId, uniqueTitle, doc.content, doc.createdAt, targetWorkspaceId, newFolderId]
+      );
+    }
+    await saveSqliteDb(db);
+    return { workspace: targetWorkspaceObj };
+  } catch {
+    return null;
+  }
+}
+
+export async function importAllWorkspacesData(
+  data: AllWorkspacesExport
+): Promise<Workspace[]> {
+  const imported: Workspace[] = [];
+  for (const wsExport of data.workspaces) {
+    const result = await importWorkspaceData(wsExport);
+    if (result) imported.push(result.workspace);
+  }
+  return imported;
 }

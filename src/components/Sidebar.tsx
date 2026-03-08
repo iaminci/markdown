@@ -30,10 +30,36 @@ import {
   updateDocument,
   deleteWorkspace,
   deleteFolder,
+  deleteAllData,
+  exportWorkspaceData,
+  exportAllWorkspacesData,
+  exportWorkspacesData,
+  importWorkspaceData,
+  importAllWorkspacesData,
+  type WorkspaceExport,
+  type AllWorkspacesExport,
 } from "@/lib/storage";
 import { CreateNameDialog } from "./CreateNameDialog";
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher";
-import { Plus } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Plus, Upload, Download, Trash2 } from "lucide-react";
 
 interface SidebarProps {
   documents: Document[];
@@ -65,6 +91,10 @@ export function Sidebar({
   const [renameFolderTarget, setRenameFolderTarget] = useState<{ id: string; name: string } | null>(null);
   const [renameDocOpen, setRenameDocOpen] = useState(false);
   const [renameDocTarget, setRenameDocTarget] = useState<{ id: string; title: string } | null>(null);
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportConfirmDialogOpen, setExportConfirmDialogOpen] = useState(false);
+  const [exportSelectedIds, setExportSelectedIds] = useState<Set<string>>(new Set());
   const [workspaces, setWorkspaces] = useState<Awaited<ReturnType<typeof getWorkspaces>>>([]);
   const [foldersByWorkspace, setFoldersByWorkspace] = useState<
     Map<string, Awaited<ReturnType<typeof getAllFolders>>>
@@ -76,6 +106,7 @@ export function Sidebar({
     folderId: string | null;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const WORKSPACE_KEY = "md-viewer-current-workspace";
 
@@ -226,6 +257,145 @@ export function Sidebar({
     }
   };
 
+  const handleDeleteAllClick = () => setDeleteAllDialogOpen(true);
+
+  const handleDeleteAllConfirm = async () => {
+    if (selectedWorkspaceId) {
+      await deleteWorkspace(selectedWorkspaceId);
+      setSelectedWorkspaceId(null);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(WORKSPACE_KEY, "");
+      }
+    } else {
+      await deleteAllData();
+      setSelectedWorkspaceId(null);
+      if (typeof window !== "undefined") {
+        localStorage.setItem(WORKSPACE_KEY, "");
+      }
+    }
+    setDeleteAllDialogOpen(false);
+    await refreshTreeData();
+    onRefresh();
+  };
+
+  const handleExportClick = () => {
+    if (selectedWorkspaceId) {
+      setExportConfirmDialogOpen(true);
+    } else {
+      setExportSelectedIds(new Set(sortedWorkspaces.map((w) => w.id)));
+      setExportDialogOpen(true);
+    }
+  };
+
+  const handleExportConfirm = async () => {
+    if (selectedWorkspaceId) {
+      await handleExportWorkspace(selectedWorkspaceId);
+      setExportConfirmDialogOpen(false);
+    }
+  };
+
+  const handleExportWorkspace = async (workspaceId: string) => {
+    const data = await exportWorkspaceData(workspaceId);
+    if (!data) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const filename = `${data.workspace.name.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-")}-export.json`;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportSelected = async () => {
+    const ids = Array.from(exportSelectedIds);
+    if (ids.length === 0) return;
+    const data =
+      ids.length === sortedWorkspaces.length
+        ? await exportAllWorkspacesData()
+        : await exportWorkspacesData(ids);
+    if (!data) return;
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: "application/json",
+    });
+    const filename =
+      ids.length === sortedWorkspaces.length
+        ? "all-workspaces-export.json"
+        : "workspaces-export.json";
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+    setExportDialogOpen(false);
+  };
+
+  const toggleExportWorkspace = (id: string) => {
+    setExportSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleExportSelectAll = () => {
+    if (exportSelectedIds.size === sortedWorkspaces.length) {
+      setExportSelectedIds(new Set());
+    } else {
+      setExportSelectedIds(new Set(sortedWorkspaces.map((w) => w.id)));
+    }
+  };
+
+  const handleImportWorkspace = () => {
+    importInputRef.current?.click();
+  };
+
+  const handleImportFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text) as unknown;
+      if (!data || typeof data !== "object" || !("version" in data)) {
+        throw new Error("Invalid workspace export file");
+      }
+      if ("type" in data && data.type === "all" && "workspaces" in data && Array.isArray(data.workspaces)) {
+        const imported = await importAllWorkspacesData(data as AllWorkspacesExport);
+        if (imported.length > 0) {
+          setSelectedWorkspaceId(imported[0].id);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(WORKSPACE_KEY, imported[0].id);
+          }
+        }
+      } else if (
+        "workspace" in data &&
+        "folders" in data &&
+        "documents" in data &&
+        Array.isArray((data as WorkspaceExport).folders) &&
+        Array.isArray((data as WorkspaceExport).documents)
+      ) {
+        const result = await importWorkspaceData(data as WorkspaceExport);
+        if (result) {
+          setSelectedWorkspaceId(result.workspace.id);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(WORKSPACE_KEY, result.workspace.id);
+          }
+        }
+      } else {
+        throw new Error("Invalid workspace export file");
+      }
+      await refreshTreeData();
+      onRefresh();
+    } catch {
+      window.alert("Failed to import workspace. The file may be invalid or corrupted.");
+    }
+    e.target.value = "";
+  };
+
   const handleRenameFolder = (id: string, name: string) => {
     setRenameFolderTarget({ id, name });
     setRenameFolderOpen(true);
@@ -260,6 +430,10 @@ export function Sidebar({
     onRefresh();
   };
 
+  const selectedWorkspaceName = selectedWorkspaceId
+    ? sortedWorkspaces.find((w) => w.id === selectedWorkspaceId)?.name ?? "workspace"
+    : null;
+
   return (
     <ShadcnSidebar collapsible="none" className="print:hidden border-l-4 border-l-orange-500/50 dark:border-l-amber-400/30">
       <input
@@ -267,6 +441,13 @@ export function Sidebar({
         type="file"
         accept=".md,.markdown,text/*"
         onChange={handleFileChange}
+        className="hidden"
+      />
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".json,application/json"
+        onChange={handleImportFileChange}
         className="hidden"
       />
       <SidebarContent className="flex flex-col min-h-0 overflow-hidden">
@@ -349,9 +530,54 @@ export function Sidebar({
               onRenameFolder={handleRenameFolder}
               onDeleteFolder={handleDeleteFolder}
               onRenameDocument={handleRenameDocument}
+              onExportWorkspace={handleExportWorkspace}
             />
             </SidebarGroupContent>
           </SidebarGroup>
+        </div>
+
+        <div className="shrink-0 border-t border-sidebar-border px-2 py-2">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex gap-1.5">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex-1"
+              onClick={handleImportWorkspace}
+              title="Import workspace"
+              >
+                <Upload className="mr-1.5 size-4 shrink-0" />
+                Import
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={handleExportClick}
+                title={selectedWorkspaceId ? "Export workspace" : "Export all workspaces"}
+              >
+                <Download className="mr-1.5 size-4 shrink-0" />
+                Export
+              </Button>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+              onClick={handleDeleteAllClick}
+              title={
+                selectedWorkspaceId
+                  ? `Delete workspace and all its contents`
+                  : "Delete all workspaces, folders, and documents"
+              }
+            >
+              <Trash2 className="mr-1.5 size-4 shrink-0" />
+              {selectedWorkspaceId ? `Delete ${selectedWorkspaceName} Workspace` : "Delete Everything"}
+            </Button>
+          </div>
         </div>
       </SidebarContent>
 
@@ -410,6 +636,106 @@ export function Sidebar({
         submitLabel="Rename"
         onSubmit={handleRenameDocumentSubmit}
       />
+
+      <AlertDialog open={exportConfirmDialogOpen} onOpenChange={setExportConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Export workspace</AlertDialogTitle>
+            <AlertDialogDescription>
+              Export &quot;{selectedWorkspaceName}&quot; as a JSON file? This will include the
+              workspace, all folders, and documents.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => void handleExportConfirm()}>
+              Export
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteAllDialogOpen} onOpenChange={setDeleteAllDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {selectedWorkspaceId
+                ? `Delete "${selectedWorkspaceName}" and all its contents?`
+                : "Delete all workspaces, folders, and documents?"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedWorkspaceId ? (
+                <>
+                  This will permanently delete the workspace "{selectedWorkspaceName}" and everything
+                  inside it (folders and documents). This action cannot be undone.
+                </>
+              ) : (
+                <>
+                  This will permanently delete all workspaces, folders, and documents. A default empty
+                  workspace will be created. This action cannot be undone.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                void handleDeleteAllConfirm();
+              }}
+            >
+              {selectedWorkspaceId ? `Delete ${selectedWorkspaceName} Workspace` : "Delete Everything"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+        <DialogContent className="sm:max-w-sm" showCloseButton>
+          <DialogHeader>
+            <DialogTitle>Export workspaces</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 py-2">
+            <label className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-muted/50">
+              <Checkbox
+                checked={
+                  sortedWorkspaces.length > 0 &&
+                  exportSelectedIds.size === sortedWorkspaces.length
+                }
+                onCheckedChange={toggleExportSelectAll}
+              />
+              <span className="text-sm font-medium">Select all</span>
+            </label>
+            <div className="max-h-48 overflow-y-auto flex flex-col gap-1 border rounded-lg p-2">
+              {sortedWorkspaces.map((ws) => (
+                <label
+                  key={ws.id}
+                  className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 hover:bg-muted/50"
+                >
+                  <Checkbox
+                    checked={exportSelectedIds.has(ws.id)}
+                    onCheckedChange={() => toggleExportWorkspace(ws.id)}
+                  />
+                  <span className="text-sm truncate">{ws.name}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setExportDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void handleExportSelected()}
+              disabled={exportSelectedIds.size === 0}
+            >
+              Export {exportSelectedIds.size > 0 ? `(${exportSelectedIds.size})` : ""}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </ShadcnSidebar>
   );
 }
