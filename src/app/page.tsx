@@ -38,7 +38,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { Pencil } from "lucide-react";
+import { Pencil, Sparkles, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { rewriteText, isRewriterSupported } from "@/lib/chrome-ai";
+import { DocumentChatButton } from "@/components/DocumentChat";
 
 const CURRENT_DOC_KEY = "md-viewer-current-doc";
 
@@ -51,6 +54,13 @@ function HomeContent() {
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const [improveLoading, setImproveLoading] = useState(false);
+  const [rewriterAvailable, setRewriterAvailable] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  useEffect(() => {
+    setRewriterAvailable(isRewriterSupported());
+  }, []);
 
   const refresh = useCallback(async () => {
     const docs = await getDocuments();
@@ -135,6 +145,23 @@ function HomeContent() {
     }
     setEditOpen(false);
   }, [currentDoc, editContent, refresh]);
+
+  const handleImproveWithAI = useCallback(async () => {
+    setImproveLoading(true);
+    try {
+      const result = await rewriteText(editContent);
+      if (result) {
+        setEditContent(result);
+        toast.success("Content improved with AI.");
+      } else {
+        toast.error("Rewriter unavailable. Enable chrome://flags/#writer-api-for-gemini-nano");
+      }
+    } catch {
+      toast.error("Failed to improve content.");
+    } finally {
+      setImproveLoading(false);
+    }
+  }, [editContent]);
 
   if (loading) {
     return (
@@ -248,6 +275,23 @@ function HomeContent() {
             />
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
+            {rewriterAvailable && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleImproveWithAI}
+                disabled={improveLoading || !editContent.trim()}
+                className="mr-auto"
+              >
+                {improveLoading ? (
+                  <Loader2 className="mr-1.5 size-4 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-1.5 size-4" />
+                )}
+                Improve with AI
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setEditOpen(false)}>
               Cancel
             </Button>
@@ -255,6 +299,15 @@ function HomeContent() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {currentDoc && (
+        <DocumentChatButton
+          documentContent={currentDoc.content}
+          documentTitle={currentDoc.title}
+          open={chatOpen}
+          onOpenChange={setChatOpen}
+        />
+      )}
     </SidebarProvider>
   );
 }
