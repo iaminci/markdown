@@ -83,6 +83,10 @@ export function Sidebar({
     ? workspaces.filter((w) => w.id === selectedWorkspaceId)
     : workspaces;
 
+  const searchDocuments = selectedWorkspaceId
+    ? documents.filter((d) => d.workspaceId === selectedWorkspaceId)
+    : documents;
+
   const refreshTreeData = async () => {
     const [ws, docs] = await Promise.all([getWorkspaces(), getDocuments()]);
     setWorkspaces(ws);
@@ -265,7 +269,7 @@ export function Sidebar({
         <SidebarGroup>
           <SidebarGroupLabel className="sr-only">Search</SidebarGroupLabel>
           <SidebarGroupContent>
-            <Search documents={documents} onSelect={onSelectDocument} />
+            <Search documents={searchDocuments} onSelect={onSelectDocument} />
           </SidebarGroupContent>
         </SidebarGroup>
 
