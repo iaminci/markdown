@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 function hashContent(s: string): number {
   let h = 0;
@@ -29,7 +30,12 @@ import { TableOfContents } from "@/components/TableOfContents";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 
-export default function Home() {
+const CURRENT_DOC_KEY = "md-viewer-current-doc";
+
+function HomeContent() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [currentDoc, setCurrentDoc] = useState<Document | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,13 +50,36 @@ export default function Home() {
   }, [refresh]);
 
   useEffect(() => {
-    if (documents.length > 0 && !currentDoc) {
-      setCurrentDoc(documents[0]);
+    if (documents.length === 0) {
+      setCurrentDoc(null);
+      return;
     }
     if (currentDoc && !documents.find((d) => d.id === currentDoc.id)) {
       setCurrentDoc(documents[0] ?? null);
+      return;
     }
-  }, [documents, currentDoc]);
+    const docIdFromUrl = searchParams.get("doc");
+    const docIdFromStorage =
+      typeof window !== "undefined" ? localStorage.getItem(CURRENT_DOC_KEY) : null;
+    const preferredId = docIdFromUrl ?? docIdFromStorage;
+    const preferred = preferredId
+      ? documents.find((d) => d.id === preferredId)
+      : null;
+    if (preferred) {
+      setCurrentDoc(preferred);
+    } else if (!currentDoc) {
+      setCurrentDoc(documents[0]);
+    }
+  }, [documents, searchParams, currentDoc]);
+
+  useEffect(() => {
+    if (!currentDoc || typeof window === "undefined") return;
+    localStorage.setItem(CURRENT_DOC_KEY, currentDoc.id);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("doc") === currentDoc.id) return;
+    params.set("doc", currentDoc.id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [currentDoc?.id, pathname, router]);
 
   const handleAddDocument = useCallback(
     async (
@@ -94,6 +123,9 @@ export default function Home() {
         onSelectDocument={async (doc) => {
           const fresh = await getDocument(doc.id);
           setCurrentDoc(fresh ?? doc);
+          const params = new URLSearchParams(searchParams.toString());
+          params.set("doc", doc.id);
+          router.replace(`${pathname}?${params.toString()}`, { scroll: false });
         }}
         onDeleteDocument={handleDeleteDocument}
         onAddDocument={handleAddDocument}
@@ -164,5 +196,19 @@ export default function Home() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }
