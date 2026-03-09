@@ -453,31 +453,6 @@ export function Sidebar({
       <SidebarContent className="flex flex-col min-h-0 overflow-hidden">
         <div className="shrink-0 flex flex-col">
           <SidebarGroup>
-            <SidebarGroupLabel className="sr-only">Actions</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <div className="flex gap-1.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPaste(!showPaste)}
-                  className="flex-1 rounded-lg"
-                >
-                  Paste Markdown
-                </Button>
-              </div>
-              {showPaste && (
-                <PasteInput
-                  onClose={() => setShowPaste(false)}
-                  onSubmit={(title, content) =>
-                    onAddDocument(title, content, selectedWorkspaceId ?? undefined, null)
-                  }
-                />
-              )}
-            </SidebarGroupContent>
-          </SidebarGroup>
-
-          <SidebarGroup>
             <SidebarGroupLabel className="sr-only">Search</SidebarGroupLabel>
             <SidebarGroupContent>
               <Search documents={searchDocuments} onSelect={onSelectDocument} />
@@ -537,6 +512,23 @@ export function Sidebar({
 
         <div className="shrink-0 border-t border-sidebar-border px-2 py-2">
           <div className="flex flex-col gap-1.5">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPaste(!showPaste)}
+              className="w-full rounded-lg"
+            >
+              Paste Markdown
+            </Button>
+            {showPaste && (
+              <PasteInput
+                onClose={() => setShowPaste(false)}
+                onSubmit={(title, content) =>
+                  onAddDocument(title, content, selectedWorkspaceId ?? undefined, null)
+                }
+              />
+            )}
             <div className="flex gap-1.5">
               <Button
                 type="button"
@@ -574,7 +566,7 @@ export function Sidebar({
               }
             >
               <Trash2 className="mr-1.5 size-4 shrink-0" />
-              {selectedWorkspaceId ? `Delete ${selectedWorkspaceName} Workspace` : "Delete Everything"}
+              {selectedWorkspaceId ? "Delete Workspace" : "Delete Everything"}
             </Button>
           </div>
         </div>
@@ -685,7 +677,7 @@ export function Sidebar({
                 void handleDeleteAllConfirm();
               }}
             >
-              {selectedWorkspaceId ? `Delete ${selectedWorkspaceName} Workspace` : "Delete Everything"}
+              {selectedWorkspaceId ? "Delete Workspace" : "Delete Everything"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

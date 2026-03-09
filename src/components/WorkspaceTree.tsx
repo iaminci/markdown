@@ -24,7 +24,6 @@ import {
   Plus,
   MoreHorizontal,
   Pencil,
-  Library,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -186,7 +185,6 @@ function WorkspaceSection({
           onDrop={handleWsDrop}
         >
           <div className="flex flex-1 min-w-0 items-center gap-2">
-            <Library className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
             <span className="truncate font-bold text-left">{workspace.name}</span>
           </div>
           <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
