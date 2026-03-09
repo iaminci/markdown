@@ -691,7 +691,7 @@ export function Sidebar({
       </AlertDialog>
 
       <AlertDialog open={deleteAllDialogOpen} onOpenChange={setDeleteAllDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="ring-orange-500/50 dark:ring-[color:var(--dm-border)]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {selectedWorkspaceId
@@ -734,7 +734,7 @@ export function Sidebar({
           if (!open) setDeleteWorkspaceTarget(null);
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="ring-orange-500/50 dark:ring-[color:var(--dm-border)]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Delete &quot;{deleteWorkspaceTarget?.name}&quot; and all its contents?
@@ -766,7 +766,7 @@ export function Sidebar({
           if (!open) setDeleteFolderTarget(null);
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="ring-orange-500/50 dark:ring-[color:var(--dm-border)]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Delete folder &quot;{deleteFolderTarget?.name}&quot; and all its contents?
@@ -798,7 +798,7 @@ export function Sidebar({
           if (!open) setDeleteDocTarget(null);
         }}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="ring-orange-500/50 dark:ring-[color:var(--dm-border)]">
           <AlertDialogHeader>
             <AlertDialogTitle>
               Delete file &quot;{deleteDocTarget?.title}&quot;?

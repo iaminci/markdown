@@ -193,7 +193,7 @@ function HomeContent() {
                   const headingMatchesTitle =
                     firstHeading &&
                     titleNorm.toLowerCase() === firstHeading.toLowerCase();
-                  const isReadme = /^readme(\s*\(\d+\))?$/i.test(currentDoc.title);
+                  const isReadme = /^readme(\s*\(\d+\))*$/i.test(currentDoc.title);
                   if (isReadme || headingMatchesTitle) return <div className="min-w-0 flex-1" />;
                   return (
                     <h1 className="text-2xl font-semibold text-foreground min-w-0 flex-1">
