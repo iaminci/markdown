@@ -149,15 +149,13 @@ export function WorkspaceTree({
   }, [workspaceIds.join(",")]);
 
   const workspaceValue = expandedWorkspaces.filter((id) => workspaceIds.includes(id));
-  const effectiveWorkspaceValue =
-    workspaceValue.length > 0 ? workspaceValue : workspaceIds;
 
   return (
     <div className="flex flex-col gap-0">
       <Accordion
         multiple
         key={workspaceIds.join(",")}
-        value={effectiveWorkspaceValue}
+        value={workspaceValue}
         onValueChange={handleWorkspaceValueChange}
         className="border-none max-w-full"
       >
