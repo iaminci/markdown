@@ -52,7 +52,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         On this page
       </h3>
-      <ul className="space-y-1 border-l border-orange-500/30 dark:border-yellow-400/30 pl-3">
+      <ul className="space-y-1 border-l border-orange-500/30 dark:border-amber-400/30 pl-3">
         {headings.map(({ id, text, level }) => (
           <li
             key={id}
@@ -61,7 +61,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
           >
             <a
               href={`#${id}`}
-              className="block rounded-md px-1 -ml-1 text-muted-foreground hover:text-foreground hover:bg-orange-200/50 dark:hover:bg-yellow-800/30 transition-colors"
+              className="block rounded-md px-1 -ml-1 text-muted-foreground hover:text-foreground hover:bg-orange-200/50 dark:hover:bg-amber-800/30 transition-colors"
             >
               {text}
             </a>

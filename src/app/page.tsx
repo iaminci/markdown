@@ -171,10 +171,10 @@ function HomeContent() {
       />
 
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="relative flex h-12 shrink-0 items-center border-b border-orange-500/30 dark:border-yellow-400/30 px-4">
+        <header className="relative flex h-12 shrink-0 items-center border-b border-orange-500/30 dark:border-amber-400/30 px-4">
           <h1 className="absolute left-[calc(50vw-16rem)] -translate-x-1/2 text-2xl font-semibold tracking-[-0.02em] text-foreground">
             <span>Opsly </span>
-            <span className="text-orange-500 dark:text-yellow-400">MD</span>
+            <span className="text-orange-500 dark:text-amber-400">MD</span>
           </h1>
           <div className="ml-auto">
             <ThemeToggle />
@@ -204,7 +204,7 @@ function HomeContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-yellow-400/30 dark:focus-visible:border-yellow-400 dark:focus-visible:ring-yellow-400/30"
+                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
                     onClick={handleEditOpen}
                   >
                     <Pencil className="mr-1.5 size-4" />
@@ -214,7 +214,7 @@ function HomeContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-yellow-400/30 dark:focus-visible:border-yellow-400 dark:focus-visible:ring-yellow-400/30"
+                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
                     onClick={() => {
                       const blob = new Blob([currentDoc.content], {
                         type: "text/markdown",
@@ -239,7 +239,7 @@ function HomeContent() {
           </div>
 
           {currentDoc && (
-            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto overflow-x-hidden border-l border-orange-500/30 dark:border-yellow-400/30 px-6 py-8 lg:block print:hidden">
+            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto overflow-x-hidden border-l border-orange-500/30 dark:border-amber-400/30 px-6 py-8 lg:block print:hidden">
               <TableOfContents
                 key={`${currentDoc.id}-${hashContent(currentDoc.content)}`}
                 content={currentDoc.content}

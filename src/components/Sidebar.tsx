@@ -478,7 +478,7 @@ export function Sidebar({
     : null;
 
   return (
-    <ShadcnSidebar collapsible="none" className="print:hidden border-r border-orange-500/30 dark:border-yellow-400/30">
+    <ShadcnSidebar collapsible="none" className="print:hidden border-r border-orange-500/30 dark:border-amber-400/30">
       <input
         ref={fileInputRef}
         type="file"
@@ -554,14 +554,14 @@ export function Sidebar({
           </SidebarGroup>
         </div>
 
-        <div className="shrink-0 border-t border-orange-500/30 dark:border-yellow-400/30 px-2 py-2">
+        <div className="shrink-0 border-t border-orange-500/30 dark:border-amber-400/30 px-2 py-2">
           <div className="flex flex-col gap-1.5">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowPaste(!showPaste)}
-              className="w-full rounded-lg border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-yellow-400/30 dark:focus-visible:border-yellow-400 dark:focus-visible:ring-yellow-400/30"
+              className="w-full rounded-lg border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
             >
               Paste Markdown
             </Button>
@@ -578,7 +578,7 @@ export function Sidebar({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-yellow-400/30 dark:focus-visible:border-yellow-400 dark:focus-visible:ring-yellow-400/30"
+                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
               onClick={handleImportWorkspace}
               title="Import workspace"
               >
@@ -589,7 +589,7 @@ export function Sidebar({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-yellow-400/30 dark:focus-visible:border-yellow-400 dark:focus-visible:ring-yellow-400/30"
+                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
                 onClick={handleExportClick}
                 title={selectedWorkspaceId ? "Export workspace" : "Export all workspaces"}
               >
@@ -828,7 +828,7 @@ export function Sidebar({
             <DialogTitle>Export workspaces</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-2 py-2">
-            <label className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-orange-200/50 dark:hover:bg-yellow-800/30">
+            <label className="flex items-center gap-2 cursor-pointer rounded-lg px-2 py-1.5 hover:bg-orange-200/50 dark:hover:bg-amber-800/30">
               <Checkbox
                 checked={
                   sortedWorkspaces.length > 0 &&
@@ -842,7 +842,7 @@ export function Sidebar({
               {sortedWorkspaces.map((ws) => (
                 <label
                   key={ws.id}
-                  className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 hover:bg-orange-200/50 dark:hover:bg-yellow-800/30"
+                  className="flex items-center gap-2 cursor-pointer rounded-md px-2 py-1.5 hover:bg-orange-200/50 dark:hover:bg-amber-800/30"
                 >
                   <Checkbox
                     checked={exportSelectedIds.has(ws.id)}
