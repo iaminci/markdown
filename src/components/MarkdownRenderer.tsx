@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import { remarkTreeStructure } from "@/lib/remark-tree-structure";
+import { remarkCodeBlockLang } from "@/lib/remark-code-block-lang";
 import rehypeKatex from "rehype-katex";
 import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
@@ -81,7 +82,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
     <article className="prose prose-zinc dark:prose-invert max-w-none">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath, remarkTreeStructure]}
+        remarkPlugins={[remarkGfm, remarkMath, remarkCodeBlockLang, remarkTreeStructure]}
         rehypePlugins={[
           rehypeKatex,
           [rehypeHighlight, { plainText: ["text", "plaintext", "txt", "tree"] }],

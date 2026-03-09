@@ -92,6 +92,8 @@ export function Sidebar({
   const [renameDocOpen, setRenameDocOpen] = useState(false);
   const [renameDocTarget, setRenameDocTarget] = useState<{ id: string; title: string } | null>(null);
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
+  const [deleteWorkspaceDialogOpen, setDeleteWorkspaceDialogOpen] = useState(false);
+  const [deleteWorkspaceTarget, setDeleteWorkspaceTarget] = useState<{ id: string; name: string } | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportConfirmDialogOpen, setExportConfirmDialogOpen] = useState(false);
   const [exportSelectedIds, setExportSelectedIds] = useState<Set<string>>(new Set());
@@ -249,12 +251,18 @@ export function Sidebar({
     onRefresh();
   };
 
-  const handleDeleteWorkspace = async (id: string) => {
-    if (window.confirm("Delete this workspace and all its contents?")) {
-      await deleteWorkspace(id);
-      await refreshTreeData();
-      onRefresh();
-    }
+  const handleDeleteWorkspaceRequest = (id: string, name: string) => {
+    setDeleteWorkspaceTarget({ id, name });
+    setDeleteWorkspaceDialogOpen(true);
+  };
+
+  const handleDeleteWorkspaceConfirm = async () => {
+    if (!deleteWorkspaceTarget) return;
+    await deleteWorkspace(deleteWorkspaceTarget.id);
+    setDeleteWorkspaceTarget(null);
+    setDeleteWorkspaceDialogOpen(false);
+    await refreshTreeData();
+    onRefresh();
   };
 
   const handleDeleteAllClick = () => setDeleteAllDialogOpen(true);
@@ -493,6 +501,7 @@ export function Sidebar({
               folders={getFoldersSync}
               documents={getDocumentsSync}
               currentId={currentId}
+              selectedWorkspaceId={selectedWorkspaceId}
               onSelectDocument={onSelectDocument}
               onDeleteDocument={onDeleteDocument}
               onAddWorkspace={handleAddWorkspace}
@@ -501,7 +510,7 @@ export function Sidebar({
               onUploadFile={handleUploadFile}
               onMoveDocument={handleMoveDocument}
               onRenameWorkspace={handleRenameWorkspace}
-              onDeleteWorkspace={handleDeleteWorkspace}
+              onDeleteWorkspace={handleDeleteWorkspaceRequest}
               onRenameFolder={handleRenameFolder}
               onDeleteFolder={handleDeleteFolder}
               onRenameDocument={handleRenameDocument}
@@ -678,6 +687,38 @@ export function Sidebar({
               }}
             >
               {selectedWorkspaceId ? "Delete Workspace" : "Delete Everything"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteWorkspaceDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteWorkspaceDialogOpen(open);
+          if (!open) setDeleteWorkspaceTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete &quot;{deleteWorkspaceTarget?.name}&quot; and all its contents?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the workspace and everything inside it (folders and
+              documents). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                void handleDeleteWorkspaceConfirm();
+              }}
+            >
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

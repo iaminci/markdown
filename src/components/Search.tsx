@@ -46,12 +46,12 @@ export function Search({ documents, onSelect }: SearchProps) {
         <SearchIcon className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="search"
-          placeholder="Search documents..."
+          placeholder="Search Markdown Files"
           value={query}
           onChange={(e) => search(e.target.value)}
           onFocus={() => query && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 150)}
-          className="pl-8"
+          className="pl-8 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
         />
       </div>
       {isOpen && results.length > 0 && (

@@ -39,6 +39,7 @@ interface WorkspaceTreeProps {
   folders: (workspaceId: string, parentFolderId: string | null) => Folder[];
   documents: (workspaceId: string, folderId: string | null) => Document[];
   currentId: string | null;
+  selectedWorkspaceId: string | null;
   onSelectDocument: (doc: Document) => void;
   onDeleteDocument: (id: string) => void;
   onAddWorkspace: () => void;
@@ -47,7 +48,7 @@ interface WorkspaceTreeProps {
   onUploadFile: (workspaceId: string, folderId: string | null) => void;
   onMoveDocument: (docId: string, workspaceId: string, folderId: string | null) => void;
   onRenameWorkspace: (id: string, name: string) => void;
-  onDeleteWorkspace: (id: string) => void;
+  onDeleteWorkspace: (id: string, name: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
   onRenameDocument: (id: string, title: string) => void;
@@ -58,6 +59,7 @@ export function WorkspaceTree({
   folders,
   documents,
   currentId,
+  selectedWorkspaceId,
   onSelectDocument,
   onDeleteDocument,
   onAddWorkspace,
@@ -90,6 +92,7 @@ export function WorkspaceTree({
             getFolders={folders}
             getDocuments={documents}
             currentId={currentId}
+            selectedWorkspaceId={selectedWorkspaceId}
             onSelectDocument={onSelectDocument}
             onDeleteDocument={onDeleteDocument}
             onAddFolder={onAddFolder}
@@ -115,6 +118,7 @@ interface WorkspaceSectionProps {
   getFolders: (workspaceId: string, parentFolderId: string | null) => Folder[];
   getDocuments: (workspaceId: string, folderId: string | null) => Document[];
   currentId: string | null;
+  selectedWorkspaceId: string | null;
   onSelectDocument: (doc: Document) => void;
   onDeleteDocument: (id: string) => void;
   onAddFolder: (workspaceId: string, parentFolderId: string | null) => void;
@@ -122,7 +126,7 @@ interface WorkspaceSectionProps {
   onUploadFile: (workspaceId: string, folderId: string | null) => void;
   onMoveDocument: (docId: string, workspaceId: string, folderId: string | null) => void;
   onRenameWorkspace: (id: string, name: string) => void;
-  onDeleteWorkspace: (id: string) => void;
+  onDeleteWorkspace: (id: string, name: string) => void;
   onRenameFolder: (id: string, name: string) => void;
   onDeleteFolder: (id: string) => void;
   onRenameDocument: (id: string, title: string) => void;
@@ -135,6 +139,7 @@ function WorkspaceSection({
   getFolders,
   getDocuments,
   currentId,
+  selectedWorkspaceId,
   onSelectDocument,
   onDeleteDocument,
   onAddFolder,
@@ -185,7 +190,7 @@ function WorkspaceSection({
           onDrop={handleWsDrop}
         >
           <div className="flex flex-1 min-w-0 items-center gap-2">
-            <span className="truncate font-bold text-left">{workspace.name}</span>
+            <span className="truncate text-left">{workspace.name}</span>
           </div>
           <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
@@ -217,10 +222,12 @@ function WorkspaceSection({
                   <Pencil className="mr-2 size-4" />
                   Rename
                 </DropdownMenuItem>
-                <DropdownMenuItem variant="destructive" onClick={() => onDeleteWorkspace(workspace.id)}>
-                  <Trash2 className="mr-2 size-4" />
-                  Delete
-                </DropdownMenuItem>
+                {!selectedWorkspaceId && (
+                  <DropdownMenuItem variant="destructive" onClick={() => onDeleteWorkspace(workspace.id, workspace.name)}>
+                    <Trash2 className="mr-2 size-4" />
+                    Delete
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -420,10 +427,6 @@ function FolderItem({
               }
             />
             <DropdownMenuContent align="end" className="rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
-              <DropdownMenuItem onClick={() => onAddFolder(workspaceId, folder.id)}>
-                <FolderIcon className="mr-2 size-4" />
-                Add folder
-              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onUploadFile(workspaceId, folder.id)}>
                 <FileIcon className="mr-2 size-4" />
                 Upload file
@@ -508,6 +511,7 @@ function FileItem({
   onMoveDocument: (docId: string, workspaceId: string, folderId: string | null) => void;
 }) {
   const [showMenu, setShowMenu] = useState(false);
+  const displayName = getFirstHeading(doc.content) ?? doc.title;
 
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData(DRAG_TYPE, doc.id);
@@ -540,7 +544,9 @@ function FileItem({
         )}
       >
         <FileIcon className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
-        <span className="truncate">{getFirstHeading(doc.content) ?? doc.title}</span>
+        <span className="truncate" title={displayName}>
+          {displayName}
+        </span>
       </Button>
       <div className="ml-auto shrink-0">
         <DropdownMenu>
