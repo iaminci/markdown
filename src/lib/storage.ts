@@ -9,6 +9,13 @@ import {
 
 const LEGACY_STORAGE_KEY = "md-viewer-documents";
 
+export class DuplicateNameError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DuplicateNameError";
+  }
+}
+
 async function migrateFromLocalStorage(db: Awaited<ReturnType<typeof getSqliteDb>>): Promise<void> {
   if (typeof window === "undefined") return;
   try {
@@ -93,17 +100,16 @@ export async function addDocument(
   const workspaceId = options?.workspaceId ?? doc.workspaceId ?? "default";
   const folderId = options?.folderId ?? doc.folderId ?? null;
 
-  const docsInLocation = (await getDocuments(workspaceId)).filter(
-    (d) => d.folderId === folderId
-  );
-  const uniqueTitle = makeTitleUnique(
-    doc.title,
-    docsInLocation.map((d) => d.title)
-  );
+  const docsInLocation = await getDocumentsInFolder(workspaceId, folderId);
+  const titleTrimmed = doc.title.trim();
+  const titleLower = titleTrimmed.toLowerCase();
+  if (docsInLocation.some((d) => (d.title ?? "").toLowerCase() === titleLower)) {
+    throw new DuplicateNameError(`A file named "${titleTrimmed || doc.title}" already exists in this location.`);
+  }
 
   const newDoc: Document = {
     ...doc,
-    title: uniqueTitle,
+    title: titleTrimmed || doc.title,
     id: crypto.randomUUID(),
     createdAt: Date.now(),
     workspaceId,
@@ -125,7 +131,24 @@ export async function updateDocument(
   const documents = await getDocuments();
   const index = documents.findIndex((d) => d.id === id);
   if (index === -1) return null;
-  documents[index] = { ...documents[index], ...updates };
+  const doc = documents[index];
+  if (updates.title !== undefined) {
+    const titleTrimmed = updates.title.trim();
+    const titleLower = titleTrimmed.toLowerCase();
+    const duplicate = documents.find(
+      (d) =>
+        d.id !== id &&
+        d.workspaceId === doc.workspaceId &&
+        d.folderId === doc.folderId &&
+        d.title.toLowerCase() === titleLower
+    );
+    if (duplicate) {
+      throw new DuplicateNameError(`A file named "${titleTrimmed || updates.title}" already exists in this location.`);
+    }
+    documents[index] = { ...doc, ...updates, title: titleTrimmed || updates.title };
+  } else {
+    documents[index] = { ...doc, ...updates };
+  }
   await saveDocuments(documents);
   return documents[index];
 }
@@ -163,9 +186,14 @@ export async function getWorkspaces(): Promise<Workspace[]> {
 }
 
 export async function addWorkspace(name: string): Promise<Workspace> {
+  const existing = await getWorkspaces();
+  const nameLower = name.trim().toLowerCase();
+  if (existing.some((w) => w.name.toLowerCase() === nameLower)) {
+    throw new DuplicateNameError(`A workspace named "${name.trim()}" already exists.`);
+  }
   const ws: Workspace = {
     id: crypto.randomUUID(),
-    name,
+    name: name.trim(),
     createdAt: Date.now(),
   };
   const db = await getSqliteDb();
@@ -178,8 +206,14 @@ export async function addWorkspace(name: string): Promise<Workspace> {
 }
 
 export async function updateWorkspace(id: string, name: string): Promise<void> {
+  const existing = await getWorkspaces();
+  const nameLower = name.trim().toLowerCase();
+  const duplicate = existing.find((w) => w.id !== id && w.name.toLowerCase() === nameLower);
+  if (duplicate) {
+    throw new DuplicateNameError(`A workspace named "${name.trim()}" already exists.`);
+  }
   const db = await getSqliteDb();
-  db.run("UPDATE workspaces SET name = ? WHERE id = ?", [name, id]);
+  db.run("UPDATE workspaces SET name = ? WHERE id = ?", [name.trim(), id]);
   await saveSqliteDb(db);
 }
 
@@ -206,7 +240,15 @@ export async function deleteAllData(): Promise<void> {
 
 export async function updateFolder(id: string, name: string): Promise<void> {
   const db = await getSqliteDb();
-  db.run("UPDATE folders SET name = ? WHERE id = ?", [name, id]);
+  const rows = await sqlQuery<Folder>(db, "SELECT id, workspaceId, parentFolderId, name, createdAt FROM folders WHERE id = ?", [id]);
+  const folder = rows[0];
+  if (!folder) return;
+  const siblings = await getFolders(folder.workspaceId, folder.parentFolderId);
+  const nameLower = name.trim().toLowerCase();
+  if (siblings.some((f) => f.id !== id && f.name.toLowerCase() === nameLower)) {
+    throw new DuplicateNameError(`A folder named "${name.trim()}" already exists in this location.`);
+  }
+  db.run("UPDATE folders SET name = ? WHERE id = ?", [name.trim(), id]);
   await saveSqliteDb(db);
 }
 
@@ -250,11 +292,16 @@ export async function addFolder(
   name: string,
   parentFolderId: string | null = null
 ): Promise<Folder> {
+  const siblings = await getFolders(workspaceId, parentFolderId);
+  const nameLower = name.trim().toLowerCase();
+  if (siblings.some((f) => f.name.toLowerCase() === nameLower)) {
+    throw new DuplicateNameError(`A folder named "${name.trim()}" already exists in this location.`);
+  }
   const folder: Folder = {
     id: crypto.randomUUID(),
     workspaceId,
     parentFolderId,
-    name,
+    name: name.trim(),
     createdAt: Date.now(),
   };
   const db = await getSqliteDb();

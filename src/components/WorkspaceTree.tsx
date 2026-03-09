@@ -24,6 +24,7 @@ import {
   Plus,
   MoreHorizontal,
   Pencil,
+  Library,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +42,7 @@ interface WorkspaceTreeProps {
   currentId: string | null;
   selectedWorkspaceId: string | null;
   onSelectDocument: (doc: Document) => void;
-  onDeleteDocument: (id: string) => void;
+  onDeleteDocument: (id: string, title: string) => void;
   onAddWorkspace: () => void;
   onAddFolder: (workspaceId: string, parentFolderId: string | null) => void;
   onAddFile: (workspaceId: string, folderId: string | null) => void;
@@ -50,7 +51,7 @@ interface WorkspaceTreeProps {
   onRenameWorkspace: (id: string, name: string) => void;
   onDeleteWorkspace: (id: string, name: string) => void;
   onRenameFolder: (id: string, name: string) => void;
-  onDeleteFolder: (id: string) => void;
+  onDeleteFolder: (id: string, name: string) => void;
   onRenameDocument: (id: string, title: string) => void;
 }
 
@@ -120,7 +121,7 @@ interface WorkspaceSectionProps {
   currentId: string | null;
   selectedWorkspaceId: string | null;
   onSelectDocument: (doc: Document) => void;
-  onDeleteDocument: (id: string) => void;
+  onDeleteDocument: (id: string, title: string) => void;
   onAddFolder: (workspaceId: string, parentFolderId: string | null) => void;
   onAddFile: (workspaceId: string, folderId: string | null) => void;
   onUploadFile: (workspaceId: string, folderId: string | null) => void;
@@ -128,7 +129,7 @@ interface WorkspaceSectionProps {
   onRenameWorkspace: (id: string, name: string) => void;
   onDeleteWorkspace: (id: string, name: string) => void;
   onRenameFolder: (id: string, name: string) => void;
-  onDeleteFolder: (id: string) => void;
+  onDeleteFolder: (id: string, name: string) => void;
   onRenameDocument: (id: string, title: string) => void;
 }
 
@@ -180,16 +181,17 @@ function WorkspaceSection({
       value={workspace.id}
       className="border-none rounded-xl px-2 py-0 -mx-2"
     >
-      <AccordionTrigger
+        <AccordionTrigger
           className={cn(
-            "group/ws flex w-full items-center rounded-xl pl-0 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-amber-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
+            "group/ws flex w-full items-center rounded-xl pl-3 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-amber-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
             wsDragOver && "bg-primary/15 ring-2 ring-primary/30"
           )}
           onDragOver={handleWsDragOver}
           onDragLeave={handleWsDragLeave}
           onDrop={handleWsDrop}
         >
-          <div className="flex flex-1 min-w-0 items-center gap-2">
+          <div className="flex flex-1 min-w-0 items-center gap-3">
+            <Library className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
             <span className="truncate text-left">{workspace.name}</span>
           </div>
           <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -273,7 +275,7 @@ function WorkspaceSection({
                 doc={doc}
                 isActive={currentId === doc.id}
                 onSelect={() => onSelectDocument(doc)}
-                onDelete={() => onDeleteDocument(doc.id)}
+                onDelete={() => onDeleteDocument(doc.id, doc.title)}
                 onRename={() => onRenameDocument(doc.id, doc.title)}
                 onMoveDocument={onMoveDocument}
               />
@@ -342,13 +344,13 @@ interface FolderItemProps {
   getDocuments: (workspaceId: string, folderId: string | null) => Document[];
   currentId: string | null;
   onSelectDocument: (doc: Document) => void;
-  onDeleteDocument: (id: string) => void;
+  onDeleteDocument: (id: string, title: string) => void;
   onAddFolder: (workspaceId: string, parentFolderId: string | null) => void;
   onAddFile: (workspaceId: string, folderId: string | null) => void;
   onUploadFile: (workspaceId: string, folderId: string | null) => void;
   onMoveDocument: (docId: string, workspaceId: string, folderId: string | null) => void;
   onRenameFolder: (id: string, name: string) => void;
-  onDeleteFolder: (id: string) => void;
+  onDeleteFolder: (id: string, name: string) => void;
   onRenameDocument: (id: string, title: string) => void;
 }
 
@@ -398,14 +400,14 @@ function FolderItem({
     <AccordionItem value={folder.id} className="border-none">
       <AccordionTrigger
         className={cn(
-          "group/folder flex w-full items-center rounded-xl pl-0 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-amber-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
+          "group/folder flex w-full items-center rounded-xl pl-3 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-amber-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
           folderDragOver && "bg-primary/15 ring-2 ring-primary/30"
         )}
         onDragOver={handleFolderDragOver}
         onDragLeave={handleFolderDragLeave}
         onDrop={handleFolderDrop}
       >
-        <div className="flex flex-1 min-w-0 items-center gap-2">
+        <div className="flex flex-1 min-w-0 items-center gap-3">
           <FolderIcon className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
           <span className="truncate text-left">{folder.name}</span>
         </div>
@@ -427,6 +429,10 @@ function FolderItem({
               }
             />
             <DropdownMenuContent align="end" className="rounded-lg shadow-lg" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem onClick={() => onAddFolder(workspaceId, folder.id)}>
+                <FolderIcon className="mr-2 size-4" />
+                Add folder
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onUploadFile(workspaceId, folder.id)}>
                 <FileIcon className="mr-2 size-4" />
                 Upload file
@@ -435,7 +441,7 @@ function FolderItem({
                 <Pencil className="mr-2 size-4" />
                 Rename
               </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onClick={() => onDeleteFolder(folder.id)}>
+              <DropdownMenuItem variant="destructive" onClick={() => onDeleteFolder(folder.id, folder.name)}>
                 <Trash2 className="mr-2 size-4" />
                 Delete
               </DropdownMenuItem>
@@ -448,7 +454,7 @@ function FolderItem({
           workspaceId={workspaceId}
           folderId={folder.id}
           onDrop={onMoveDocument}
-          className="ml-0 flex flex-col gap-0 pl-0 pt-0.5"
+          className="ml-2 flex flex-col gap-0 pl-3 pt-0.5"
         >
           {subfolders.length > 0 && (
             <Accordion
@@ -484,7 +490,7 @@ function FolderItem({
               doc={doc}
               isActive={currentId === doc.id}
               onSelect={() => onSelectDocument(doc)}
-              onDelete={() => onDeleteDocument(doc.id)}
+              onDelete={() => onDeleteDocument(doc.id, doc.title)}
               onRename={() => onRenameDocument(doc.id, doc.title)}
               onMoveDocument={onMoveDocument}
             />
@@ -524,7 +530,9 @@ function FileItem({
       onDragStart={handleDragStart}
       className={cn(
         "group flex items-center gap-1 rounded-xl pl-0 pr-1.5 py-1 transition-colors cursor-pointer",
-        isActive ? "bg-accent text-accent-foreground" : "hover:bg-orange-200/50 dark:hover:bg-amber-800/30"
+        isActive
+          ? "bg-orange-200 dark:bg-amber-800/50"
+          : "hover:bg-orange-200/50 dark:hover:bg-amber-800/30"
       )}
       onMouseEnter={() => setShowMenu(true)}
       onMouseLeave={() => setShowMenu(false)}

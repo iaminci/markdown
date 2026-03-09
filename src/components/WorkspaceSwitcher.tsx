@@ -37,7 +37,10 @@ export function WorkspaceSwitcher({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <SidebarMenuButton isActive>
+              <SidebarMenuButton
+                isActive
+                className="!bg-orange-200/50 dark:!bg-amber-800/30"
+              >
                 <span className="truncate">{label}</span>
                 <ChevronDown className="ml-auto size-4 shrink-0" />
               </SidebarMenuButton>
@@ -49,7 +52,7 @@ export function WorkspaceSwitcher({
           >
             <DropdownMenuItem
               onClick={() => onSelect(null)}
-              className={cn(!selectedId && "bg-accent text-accent-foreground font-bold")}
+              className={cn(!selectedId && "bg-orange-200/50 text-foreground font-bold dark:bg-amber-800/30")}
             >
               <span className="truncate">All workspaces</span>
             </DropdownMenuItem>
@@ -58,7 +61,7 @@ export function WorkspaceSwitcher({
                 key={ws.id}
                 onClick={() => onSelect(ws.id)}
                 className={cn(
-                  selectedId === ws.id && "bg-accent text-accent-foreground font-bold"
+                  selectedId === ws.id && "bg-orange-200/50 text-foreground font-bold dark:bg-amber-800/30"
                 )}
               >
                 <span className="truncate">{ws.name}</span>

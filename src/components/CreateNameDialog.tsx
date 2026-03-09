@@ -31,10 +31,12 @@ export function CreateNameDialog({
   onSubmit,
 }: CreateNameDialogProps) {
   const [value, setValue] = useState(defaultValue);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setValue(defaultValue);
+      setError(null);
     }
   }, [open, defaultValue]);
 
@@ -42,8 +44,13 @@ export function CreateNameDialog({
     e.preventDefault();
     const trimmed = value.trim();
     if (!trimmed) return;
-    await onSubmit(trimmed);
-    onOpenChange(false);
+    setError(null);
+    try {
+      await onSubmit(trimmed);
+      onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An error occurred. Please try again.");
+    }
   };
 
   return (
@@ -53,14 +60,20 @@ export function CreateNameDialog({
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 space-y-2">
             <Input
               value={value}
-              onChange={(e) => setValue(e.target.value)}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setError(null);
+              }}
               placeholder={placeholder}
-              className="h-10 rounded-lg border-input bg-background"
+              className={`h-10 rounded-lg border-input bg-background ${error ? "border-destructive" : ""}`}
               autoFocus
             />
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
@@ -70,7 +83,11 @@ export function CreateNameDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={!value.trim()}>
+            <Button
+              type="submit"
+              disabled={!value.trim()}
+              className="bg-orange-600 text-white hover:bg-orange-700 dark:bg-amber-600 dark:hover:bg-amber-700"
+            >
               {submitLabel}
             </Button>
           </DialogFooter>

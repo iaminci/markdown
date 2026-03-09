@@ -22,6 +22,7 @@ import {
   addDocument,
   updateDocument,
   deleteDocument,
+  DuplicateNameError,
 } from "@/lib/storage";
 import { EmptyState } from "@/components/EmptyState";
 import { Sidebar } from "@/components/Sidebar";
@@ -39,6 +40,7 @@ import {
 } from "@/components/ui/dialog";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 const CURRENT_DOC_KEY = "md-viewer-current-doc";
 
@@ -100,13 +102,21 @@ function HomeContent() {
       folderId?: string | null
     ) => {
       const wsId = workspaceId ?? "default";
-      const doc = await addDocument(
-        { title, content, workspaceId: wsId, folderId: folderId ?? null },
-        { workspaceId: wsId, folderId: folderId ?? null }
-      );
-      const updated = await getDocuments();
-      setDocuments(updated);
-      setCurrentDoc(doc);
+      try {
+        const doc = await addDocument(
+          { title, content, workspaceId: wsId, folderId: folderId ?? null },
+          { workspaceId: wsId, folderId: folderId ?? null }
+        );
+        const updated = await getDocuments();
+        setDocuments(updated);
+        setCurrentDoc(doc);
+      } catch (err) {
+        if (err instanceof DuplicateNameError) {
+          toast.error(err.message);
+        } else {
+          toast.error("Failed to create document.");
+        }
+      }
     },
     []
   );
@@ -190,6 +200,7 @@ function HomeContent() {
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
                     onClick={handleEditOpen}
                   >
                     <Pencil className="mr-1.5 size-4" />
@@ -199,6 +210,7 @@ function HomeContent() {
                     type="button"
                     variant="outline"
                     size="sm"
+                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
                     onClick={() => {
                       const blob = new Blob([currentDoc.content], {
                         type: "text/markdown",

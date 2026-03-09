@@ -36,6 +36,7 @@ import {
   exportWorkspacesData,
   importWorkspaceData,
   importAllWorkspacesData,
+  DuplicateNameError,
   type WorkspaceExport,
   type AllWorkspacesExport,
 } from "@/lib/storage";
@@ -60,6 +61,7 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Upload, Download, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface SidebarProps {
   documents: Document[];
@@ -94,6 +96,10 @@ export function Sidebar({
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
   const [deleteWorkspaceDialogOpen, setDeleteWorkspaceDialogOpen] = useState(false);
   const [deleteWorkspaceTarget, setDeleteWorkspaceTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteFolderDialogOpen, setDeleteFolderDialogOpen] = useState(false);
+  const [deleteFolderTarget, setDeleteFolderTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteDocDialogOpen, setDeleteDocDialogOpen] = useState(false);
+  const [deleteDocTarget, setDeleteDocTarget] = useState<{ id: string; title: string } | null>(null);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportConfirmDialogOpen, setExportConfirmDialogOpen] = useState(false);
   const [exportSelectedIds, setExportSelectedIds] = useState<Set<string>>(new Set());
@@ -172,21 +178,22 @@ export function Sidebar({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const target = uploadTarget ?? {
       workspaceId: selectedWorkspaceId ?? "default",
       folderId: null,
     };
-    const reader = new FileReader();
-    reader.onload = () => {
-      const content = String(reader.result ?? "");
-      const title = file.name.replace(/\.(md|markdown)$/i, "") || "Untitled";
-      onAddDocument(title, content, target.workspaceId, target.folderId);
-      setUploadTarget(null);
-    };
-    reader.readAsText(file);
+    const content = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result ?? ""));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(file);
+    });
+    const title = file.name.replace(/\.(md|markdown)$/i, "") || "Untitled";
+    await onAddDocument(title, content, target.workspaceId, target.folderId);
+    setUploadTarget(null);
     e.target.value = "";
   };
 
@@ -229,13 +236,21 @@ export function Sidebar({
   };
 
   const handleAddFile = async (workspaceId: string, folderId: string | null) => {
-    const doc = await addDocument(
-      { title: "Untitled", content: "", workspaceId, folderId },
-      { workspaceId, folderId }
-    );
-    await refreshTreeData();
-    onRefresh();
-    onSelectDocument(doc);
+    try {
+      const doc = await addDocument(
+        { title: "Untitled", content: "", workspaceId, folderId },
+        { workspaceId, folderId }
+      );
+      await refreshTreeData();
+      onRefresh();
+      onSelectDocument(doc);
+    } catch (err) {
+      if (err instanceof DuplicateNameError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to create file.");
+      }
+    }
   };
 
   const handleRenameWorkspace = (id: string, name: string) => {
@@ -417,12 +432,32 @@ export function Sidebar({
     onRefresh();
   };
 
-  const handleDeleteFolder = async (id: string) => {
-    if (window.confirm("Delete this folder and all its contents?")) {
-      await deleteFolder(id);
-      await refreshTreeData();
-      onRefresh();
-    }
+  const handleDeleteFolderRequest = (id: string, name: string) => {
+    setDeleteFolderTarget({ id, name });
+    setDeleteFolderDialogOpen(true);
+  };
+
+  const handleDeleteFolderConfirm = async () => {
+    if (!deleteFolderTarget) return;
+    await deleteFolder(deleteFolderTarget.id);
+    setDeleteFolderTarget(null);
+    setDeleteFolderDialogOpen(false);
+    await refreshTreeData();
+    onRefresh();
+  };
+
+  const handleDeleteDocumentRequest = (id: string, title: string) => {
+    setDeleteDocTarget({ id, title });
+    setDeleteDocDialogOpen(true);
+  };
+
+  const handleDeleteDocumentConfirm = async () => {
+    if (!deleteDocTarget) return;
+    await onDeleteDocument(deleteDocTarget.id);
+    setDeleteDocTarget(null);
+    setDeleteDocDialogOpen(false);
+    await refreshTreeData();
+    onRefresh();
   };
 
   const handleRenameDocument = (id: string, title: string) => {
@@ -503,7 +538,7 @@ export function Sidebar({
               currentId={currentId}
               selectedWorkspaceId={selectedWorkspaceId}
               onSelectDocument={onSelectDocument}
-              onDeleteDocument={onDeleteDocument}
+              onDeleteDocument={handleDeleteDocumentRequest}
               onAddWorkspace={handleAddWorkspace}
               onAddFolder={handleAddFolder}
               onAddFile={handleAddFile}
@@ -512,7 +547,7 @@ export function Sidebar({
               onRenameWorkspace={handleRenameWorkspace}
               onDeleteWorkspace={handleDeleteWorkspaceRequest}
               onRenameFolder={handleRenameFolder}
-              onDeleteFolder={handleDeleteFolder}
+              onDeleteFolder={handleDeleteFolderRequest}
               onRenameDocument={handleRenameDocument}
             />
             </SidebarGroupContent>
@@ -526,7 +561,7 @@ export function Sidebar({
               variant="outline"
               size="sm"
               onClick={() => setShowPaste(!showPaste)}
-              className="w-full rounded-lg"
+              className="w-full rounded-lg border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
             >
               Paste Markdown
             </Button>
@@ -543,7 +578,7 @@ export function Sidebar({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="flex-1"
+                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
               onClick={handleImportWorkspace}
               title="Import workspace"
               >
@@ -554,7 +589,7 @@ export function Sidebar({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="flex-1"
+                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
                 onClick={handleExportClick}
                 title={selectedWorkspaceId ? "Export workspace" : "Export all workspaces"}
               >
@@ -716,6 +751,69 @@ export function Sidebar({
               onClick={(e: React.MouseEvent) => {
                 e.preventDefault();
                 void handleDeleteWorkspaceConfirm();
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteFolderDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteFolderDialogOpen(open);
+          if (!open) setDeleteFolderTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete folder &quot;{deleteFolderTarget?.name}&quot; and all its contents?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the folder and everything inside it. This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                void handleDeleteFolderConfirm();
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteDocDialogOpen}
+        onOpenChange={(open) => {
+          setDeleteDocDialogOpen(open);
+          if (!open) setDeleteDocTarget(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete file &quot;{deleteDocTarget?.title}&quot;?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the file. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={(e: React.MouseEvent) => {
+                e.preventDefault();
+                void handleDeleteDocumentConfirm();
               }}
             >
               Delete
