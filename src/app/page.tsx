@@ -171,7 +171,7 @@ function HomeContent() {
       />
 
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
+        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-orange-500/30 dark:border-yellow-400/30 px-4">
           <div className="ml-auto">
             <ThemeToggle />
           </div>
@@ -200,7 +200,7 @@ function HomeContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
+                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-yellow-400/30 dark:focus-visible:border-yellow-400 dark:focus-visible:ring-yellow-400/30"
                     onClick={handleEditOpen}
                   >
                     <Pencil className="mr-1.5 size-4" />
@@ -210,7 +210,7 @@ function HomeContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-amber-400/30 dark:focus-visible:border-amber-400 dark:focus-visible:ring-amber-400/30"
+                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:border-yellow-400/30 dark:focus-visible:border-yellow-400 dark:focus-visible:ring-yellow-400/30"
                     onClick={() => {
                       const blob = new Blob([currentDoc.content], {
                         type: "text/markdown",
@@ -235,7 +235,7 @@ function HomeContent() {
           </div>
 
           {currentDoc && (
-            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto overflow-x-hidden border-l border-border px-6 py-8 lg:block print:hidden">
+            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto overflow-x-hidden border-l border-orange-500/30 dark:border-yellow-400/30 px-6 py-8 lg:block print:hidden">
               <TableOfContents
                 key={`${currentDoc.id}-${hashContent(currentDoc.content)}`}
                 content={currentDoc.content}

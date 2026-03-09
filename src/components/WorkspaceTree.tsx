@@ -183,7 +183,7 @@ function WorkspaceSection({
     >
         <AccordionTrigger
           className={cn(
-            "group/ws flex w-full items-center rounded-xl pl-3 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-amber-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
+            "group/ws flex w-full items-center rounded-xl pl-3 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-yellow-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
             wsDragOver && "bg-primary/15 ring-2 ring-primary/30"
           )}
           onDragOver={handleWsDragOver}
@@ -191,7 +191,7 @@ function WorkspaceSection({
           onDrop={handleWsDrop}
         >
           <div className="flex flex-1 min-w-0 items-center gap-3">
-            <Library className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
+            <Library className="size-4 shrink-0 text-orange-500/80 dark:text-yellow-500/70" />
             <span className="truncate text-left">{workspace.name}</span>
           </div>
           <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -400,7 +400,7 @@ function FolderItem({
     <AccordionItem value={folder.id} className="border-none">
       <AccordionTrigger
         className={cn(
-          "group/folder flex w-full items-center rounded-xl pl-3 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-amber-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
+          "group/folder flex w-full items-center rounded-xl pl-3 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-yellow-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
           folderDragOver && "bg-primary/15 ring-2 ring-primary/30"
         )}
         onDragOver={handleFolderDragOver}
@@ -408,7 +408,7 @@ function FolderItem({
         onDrop={handleFolderDrop}
       >
         <div className="flex flex-1 min-w-0 items-center gap-3">
-          <FolderIcon className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
+          <FolderIcon className="size-4 shrink-0 text-orange-500/80 dark:text-yellow-500/70" />
           <span className="truncate text-left">{folder.name}</span>
         </div>
         <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -531,8 +531,8 @@ function FileItem({
       className={cn(
         "group flex items-center gap-1 rounded-xl pl-0 pr-1.5 py-1 transition-colors cursor-pointer",
         isActive
-          ? "bg-orange-200 dark:bg-amber-800/50"
-          : "hover:bg-orange-200/50 dark:hover:bg-amber-800/30"
+          ? "bg-orange-200/50 dark:bg-yellow-800/30"
+          : "hover:bg-orange-200/50 dark:hover:bg-yellow-800/30"
       )}
       onMouseEnter={() => setShowMenu(true)}
       onMouseLeave={() => setShowMenu(false)}
@@ -551,7 +551,7 @@ function FileItem({
           isActive && "font-bold"
         )}
       >
-        <FileIcon className="size-4 shrink-0 text-orange-500/80 dark:text-amber-500/70" />
+        <FileIcon className="size-4 shrink-0 text-orange-500/80 dark:text-yellow-500/70" />
         <span className="truncate" title={displayName}>
           {displayName}
         </span>

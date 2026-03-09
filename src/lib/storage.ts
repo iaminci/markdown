@@ -80,6 +80,11 @@ export async function saveDocuments(documents: Document[]): Promise<void> {
   }
 }
 
+function getFirstHeading(content: string): string | null {
+  const match = content.match(/^#{1,6}\s+(.+)$/m);
+  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
+}
+
 function makeTitleUnique(
   title: string,
   existingTitles: string[]
@@ -103,8 +108,15 @@ export async function addDocument(
   const docsInLocation = await getDocumentsInFolder(workspaceId, folderId);
   const titleTrimmed = doc.title.trim();
   const titleLower = titleTrimmed.toLowerCase();
-  if (docsInLocation.some((d) => (d.title ?? "").toLowerCase() === titleLower)) {
-    throw new DuplicateNameError(`A file named "${titleTrimmed || doc.title}" already exists in this location.`);
+  const newFirstHeading = getFirstHeading(doc.content)?.toLowerCase() ?? null;
+  const isDuplicate = docsInLocation.some((d) => {
+    const sameTitle = (d.title ?? "").toLowerCase() === titleLower;
+    const existingFirstHeading = getFirstHeading(d.content)?.toLowerCase() ?? null;
+    const sameFirstHeading = newFirstHeading === existingFirstHeading;
+    return sameTitle && sameFirstHeading;
+  });
+  if (isDuplicate) {
+    throw new DuplicateNameError(`A file named "${titleTrimmed || doc.title}" with the same title already exists in this location.`);
   }
 
   const newDoc: Document = {
@@ -135,15 +147,17 @@ export async function updateDocument(
   if (updates.title !== undefined) {
     const titleTrimmed = updates.title.trim();
     const titleLower = titleTrimmed.toLowerCase();
+    const docFirstHeading = getFirstHeading(updates.content !== undefined ? updates.content : doc.content)?.toLowerCase() ?? null;
     const duplicate = documents.find(
       (d) =>
         d.id !== id &&
         d.workspaceId === doc.workspaceId &&
         d.folderId === doc.folderId &&
-        d.title.toLowerCase() === titleLower
+        d.title.toLowerCase() === titleLower &&
+        (getFirstHeading(d.content)?.toLowerCase() ?? null) === docFirstHeading
     );
     if (duplicate) {
-      throw new DuplicateNameError(`A file named "${titleTrimmed || updates.title}" already exists in this location.`);
+      throw new DuplicateNameError(`A file named "${titleTrimmed || updates.title}" with the same title already exists in this location.`);
     }
     documents[index] = { ...doc, ...updates, title: titleTrimmed || updates.title };
   } else {

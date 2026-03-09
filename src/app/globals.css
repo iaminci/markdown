@@ -88,12 +88,12 @@ body {
 
 /* Inline code badge styling (Cursor-like) */
 .prose :not(pre) > code {
-  @apply rounded bg-amber-100 px-1.5 py-0.5 font-mono text-sm text-amber-900 before:content-none after:content-none dark:bg-amber-900/40 dark:text-amber-200;
+  @apply rounded bg-amber-100 px-1.5 py-0.5 font-mono text-sm text-amber-900 before:content-none after:content-none dark:bg-yellow-900/40 dark:text-yellow-200;
 }
 
 /* Blockquote / Note callouts */
 .prose blockquote {
-  @apply border-l-4 border-amber-400 bg-amber-50 py-2 pl-4 dark:border-amber-600 dark:bg-amber-900/20;
+  @apply border-l-4 border-amber-400 bg-amber-50 py-2 pl-4 dark:border-yellow-600 dark:bg-yellow-900/20;
 }
 
 /* Print styles */
