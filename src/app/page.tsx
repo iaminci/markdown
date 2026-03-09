@@ -171,7 +171,11 @@ function HomeContent() {
       />
 
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="flex h-12 shrink-0 items-center gap-2 border-b border-orange-500/30 dark:border-yellow-400/30 px-4">
+        <header className="relative flex h-12 shrink-0 items-center border-b border-orange-500/30 dark:border-yellow-400/30 px-4">
+          <h1 className="absolute left-[calc(50vw-16rem)] -translate-x-1/2 text-2xl font-semibold tracking-[-0.02em] text-foreground">
+            <span>Opsly </span>
+            <span className="text-orange-500 dark:text-yellow-400">MD</span>
+          </h1>
           <div className="ml-auto">
             <ThemeToggle />
           </div>

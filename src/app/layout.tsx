@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Markdown Viewer",
+  title: "Opsly MD",
   description: "View and organize markdown documents with paste, upload, and rich rendering",
 };
 

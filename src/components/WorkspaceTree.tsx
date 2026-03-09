@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { Document } from "@/types/document";
 import type { Workspace } from "@/types/workspace";
 import type { Folder } from "@/types/workspace";
@@ -29,6 +29,8 @@ import {
 import { cn } from "@/lib/utils";
 
 const DRAG_TYPE = "application/x-md-viewer-document";
+const EXPANDED_WORKSPACES_KEY = "md-viewer-expanded-workspaces";
+const EXPANDED_FOLDERS_KEY = "md-viewer-expanded-folders";
 
 function getFirstHeading(content: string): string | null {
   const match = content.match(/^#{1,6}\s+(.+)$/m);
@@ -76,18 +78,97 @@ export function WorkspaceTree({
 }: WorkspaceTreeProps) {
   const workspaceIds = workspaces.map((w) => w.id);
 
+  const [expandedWorkspaces, setExpandedWorkspaces] = useState<string[]>(() => {
+    if (typeof window === "undefined" || workspaceIds.length === 0) return workspaceIds;
+    try {
+      const stored = localStorage.getItem(EXPANDED_WORKSPACES_KEY);
+      if (!stored) return workspaceIds;
+      const parsed = JSON.parse(stored) as string[];
+      const restored = workspaceIds.filter((id) => parsed.includes(id));
+      return restored.length > 0 ? restored : workspaceIds;
+    } catch {
+      return workspaceIds;
+    }
+  });
+
+  const [expandedFolders, setExpandedFolders] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const stored = localStorage.getItem(EXPANDED_FOLDERS_KEY);
+      return stored ? (JSON.parse(stored) as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const toSave = expandedWorkspaces.filter((id) => workspaceIds.includes(id));
+    localStorage.setItem(EXPANDED_WORKSPACES_KEY, JSON.stringify(toSave));
+  }, [expandedWorkspaces, workspaceIds]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    localStorage.setItem(EXPANDED_FOLDERS_KEY, JSON.stringify(expandedFolders));
+  }, [expandedFolders]);
+
+  const handleWorkspaceValueChange = useCallback(
+    (value: string[]) => {
+      setExpandedWorkspaces(value);
+    },
+    []
+  );
+
+  const handleExpandedFoldersChange = useCallback(
+    (parentFolderId: string | null, childIds: string[], newExpanded: string[]) => {
+      setExpandedFolders((prev) => {
+        const without = prev.filter((id) => !childIds.includes(id));
+        return [...without, ...newExpanded];
+      });
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined" || workspaceIds.length === 0) return;
+    let parsed: string[] = [];
+    try {
+      const stored = localStorage.getItem(EXPANDED_WORKSPACES_KEY);
+      if (stored) parsed = JSON.parse(stored) as string[];
+    } catch {
+      /* ignore */
+    }
+    setExpandedWorkspaces((prev) => {
+      const restored = workspaceIds.filter((id) => parsed.includes(id));
+      const newIds = workspaceIds.filter((id) => !parsed.includes(id));
+      if (restored.length > 0 || newIds.length > 0) {
+        return [...restored, ...newIds];
+      }
+      return prev.length > 0 ? prev : workspaceIds;
+    });
+  }, [workspaceIds.join(",")]);
+
+  const workspaceValue = expandedWorkspaces.filter((id) => workspaceIds.includes(id));
+  const effectiveWorkspaceValue =
+    workspaceValue.length > 0 ? workspaceValue : workspaceIds;
+
   return (
     <div className="flex flex-col gap-0">
       <Accordion
         multiple
         key={workspaceIds.join(",")}
-        defaultValue={workspaceIds}
+        value={effectiveWorkspaceValue}
+        onValueChange={handleWorkspaceValueChange}
         className="border-none max-w-full"
       >
-        {workspaces.map((ws) => (
+        {workspaces.map((ws, index) => (
           <WorkspaceSection
             key={ws.id}
+            showSeparatorAbove={true}
+            showSeparatorBelow={index === workspaces.length - 1}
             workspace={ws}
+            expandedFolders={expandedFolders}
+            onExpandedFoldersChange={handleExpandedFoldersChange}
             folders={folders(ws.id, null)}
             documents={documents(ws.id, null)}
             getFolders={folders}
@@ -113,6 +194,10 @@ export function WorkspaceTree({
 }
 
 interface WorkspaceSectionProps {
+  showSeparatorAbove?: boolean;
+  showSeparatorBelow?: boolean;
+  expandedFolders: string[];
+  onExpandedFoldersChange: (parentFolderId: string | null, childIds: string[], newExpanded: string[]) => void;
   workspace: Workspace;
   folders: Folder[];
   documents: Document[];
@@ -134,6 +219,10 @@ interface WorkspaceSectionProps {
 }
 
 function WorkspaceSection({
+  showSeparatorAbove = false,
+  showSeparatorBelow = false,
+  expandedFolders,
+  onExpandedFoldersChange,
   workspace,
   folders,
   documents,
@@ -181,6 +270,12 @@ function WorkspaceSection({
       value={workspace.id}
       className="border-none rounded-xl px-2 py-0 -mx-2"
     >
+      {showSeparatorAbove && (
+        <div
+          className="h-px shrink-0 bg-orange-500/40 dark:bg-yellow-400/40 mx-2 my-1"
+          aria-hidden
+        />
+      )}
         <AccordionTrigger
           className={cn(
             "group/ws flex w-full items-center rounded-xl pl-3 pr-2 py-1 hover:no-underline hover:bg-orange-200/50 dark:hover:bg-yellow-800/30 [&>[data-slot=accordion-trigger-icon]]:ml-auto",
@@ -245,11 +340,14 @@ function WorkspaceSection({
               <Accordion
                 multiple
                 key={folderIds.join(",")}
-                defaultValue={folderIds}
+                value={folderIds.filter((id) => expandedFolders.includes(id))}
+                onValueChange={(v) => onExpandedFoldersChange(null, folderIds, v)}
                 className="border-none"
               >
                 {folders.map((folder) => (
                   <FolderItem
+                    expandedFolders={expandedFolders}
+                    onExpandedFoldersChange={onExpandedFoldersChange}
                     key={folder.id}
                     folder={folder}
                     workspaceId={workspace.id}
@@ -282,6 +380,12 @@ function WorkspaceSection({
             ))}
           </WorkspaceDropArea>
         </AccordionContent>
+      {showSeparatorBelow && (
+        <div
+          className="h-px shrink-0 bg-orange-500/40 dark:bg-yellow-400/40 mx-2 my-1"
+          aria-hidden
+        />
+      )}
     </AccordionItem>
   );
 }
@@ -338,6 +442,8 @@ function WorkspaceDropArea({
 }
 
 interface FolderItemProps {
+  expandedFolders: string[];
+  onExpandedFoldersChange: (parentFolderId: string | null, childIds: string[], newExpanded: string[]) => void;
   folder: Folder;
   workspaceId: string;
   getFolders: (workspaceId: string, parentFolderId: string | null) => Folder[];
@@ -355,6 +461,8 @@ interface FolderItemProps {
 }
 
 function FolderItem({
+  expandedFolders,
+  onExpandedFoldersChange,
   folder,
   workspaceId,
   getFolders,
@@ -460,12 +568,15 @@ function FolderItem({
             <Accordion
               multiple
               key={subfolderIds.join(",")}
-              defaultValue={subfolderIds}
+              value={subfolderIds.filter((id) => expandedFolders.includes(id))}
+              onValueChange={(v) => onExpandedFoldersChange(folder.id, subfolderIds, v)}
               className="border-none"
             >
               {subfolders.map((sub) => (
                 <FolderItem
                   key={sub.id}
+                  expandedFolders={expandedFolders}
+                  onExpandedFoldersChange={onExpandedFoldersChange}
                   folder={sub}
                   workspaceId={workspaceId}
                   getFolders={getFolders}

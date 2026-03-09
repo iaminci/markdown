@@ -478,7 +478,7 @@ export function Sidebar({
     : null;
 
   return (
-    <ShadcnSidebar collapsible="none" className="print:hidden border-l-4 border-l-orange-500/50 dark:border-l-yellow-400/30">
+    <ShadcnSidebar collapsible="none" className="print:hidden border-r border-orange-500/30 dark:border-yellow-400/30">
       <input
         ref={fileInputRef}
         type="file"
@@ -554,7 +554,7 @@ export function Sidebar({
           </SidebarGroup>
         </div>
 
-        <div className="shrink-0 border-t border-sidebar-border px-2 py-2">
+        <div className="shrink-0 border-t border-orange-500/30 dark:border-yellow-400/30 px-2 py-2">
           <div className="flex flex-col gap-1.5">
             <Button
               type="button"
@@ -601,7 +601,7 @@ export function Sidebar({
               type="button"
               variant="outline"
               size="sm"
-              className="w-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="w-full border-red-500 text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-red-600"
               onClick={handleDeleteAllClick}
               title={
                 selectedWorkspaceId
