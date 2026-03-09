@@ -10,15 +10,44 @@ import {
 
 type Theme = "light" | "dark";
 
+export type DarkAccent =
+  | "amber"
+  | "sky"
+  | "emerald"
+  | "violet"
+  | "rose"
+  | "pink"
+  | "neon-blue"
+  | "teal"
+  | "indigo"
+  | "fuchsia"
+  | "orange";
+
 interface ThemeContextValue {
   theme: Theme;
   setTheme: (theme: Theme) => void;
+  darkAccent: DarkAccent;
+  setDarkAccent: (accent: DarkAccent) => void;
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+const DARK_ACCENT_KEY = "md-viewer-dark-accent";
+
+const VALID_ACCENTS: DarkAccent[] = [
+  "amber", "sky", "emerald", "violet", "rose", "pink",
+  "neon-blue", "teal", "indigo", "fuchsia", "orange",
+];
+
+function getInitialAccent(): DarkAccent {
+  if (typeof window === "undefined") return "amber";
+  const stored = localStorage.getItem(DARK_ACCENT_KEY) as DarkAccent | null;
+  return stored && VALID_ACCENTS.includes(stored) ? stored : "amber";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
+  const [darkAccent, setDarkAccentState] = useState<DarkAccent>(getInitialAccent);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -28,6 +57,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const initial = stored ?? (prefersDark ? "dark" : "light");
     setThemeState(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
+
+    const accent = getInitialAccent();
+    setDarkAccentState(accent);
   }, []);
 
   const setTheme = useCallback((newTheme: Theme) => {
@@ -36,17 +68,37 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.classList.toggle("dark", newTheme === "dark");
   }, []);
 
+  const setDarkAccent = useCallback((accent: DarkAccent) => {
+    setDarkAccentState(accent);
+    localStorage.setItem(DARK_ACCENT_KEY, accent);
+  }, []);
+
   if (!mounted) {
     return (
-      <ThemeContext.Provider value={{ theme: "light", setTheme }}>
+      <ThemeContext.Provider
+        value={{
+          theme: "light",
+          setTheme,
+          darkAccent: "amber",
+          setDarkAccent,
+        }}
+      >
         {children}
       </ThemeContext.Provider>
     );
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
-      {children}
+    <ThemeContext.Provider
+      value={{ theme, setTheme, darkAccent, setDarkAccent }}
+    >
+      <div
+        className={theme === "dark" ? "dark" : ""}
+        data-dark-accent={theme === "dark" ? darkAccent : undefined}
+        suppressHydrationWarning
+      >
+        {children}
+      </div>
     </ThemeContext.Provider>
   );
 }

@@ -12,7 +12,7 @@ export function ThemeToggle() {
       type="button"
       variant="ghost"
       size="icon-sm"
-      className="text-orange-600 dark:text-amber-400 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-amber-950/50 dark:hover:text-amber-300"
+      className="text-orange-600 dark:[color:var(--dm-text)] hover:text-orange-700 hover:bg-orange-50 dark:hover:[background-color:var(--dm-bg-hover)] dark:hover:[color:var(--dm-text-hover)]"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       aria-label="Toggle theme"
     >

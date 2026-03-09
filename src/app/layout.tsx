@@ -40,6 +40,9 @@ export default function RootLayout({
                 } else {
                   document.documentElement.classList.remove('dark');
                 }
+                var accent = localStorage.getItem('md-viewer-dark-accent');
+                var valid = ['amber','sky','emerald','violet','rose','pink','neon-blue','teal','indigo','fuchsia','orange'].indexOf(accent) >= 0;
+                document.documentElement.setAttribute('data-dark-accent', valid ? accent : 'amber');
               } catch (e) {}
             `,
           }}
