@@ -264,11 +264,16 @@ function HomeContent() {
               className="field-sizing-fixed min-h-[50vh] max-h-[60vh] w-full resize-y overflow-y-auto font-mono text-sm"
             />
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter className="gap-2 sm:gap-3">
             <Button variant="outline" onClick={() => setEditOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleEditSave}>Save</Button>
+            <Button
+              onClick={handleEditSave}
+              className="dark:[background-color:var(--dm-btn)] dark:hover:[background-color:var(--dm-btn-hover)] dark:text-white"
+            >
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
