@@ -270,7 +270,7 @@ function HomeContent() {
             </Button>
             <Button
               onClick={handleEditSave}
-              className="dark:[background-color:var(--dm-btn)] dark:hover:[background-color:var(--dm-btn-hover)] dark:text-white"
+              className="bg-orange-600 text-white hover:bg-orange-700 dark:[background-color:var(--dm-btn)] dark:hover:[background-color:var(--dm-btn-hover)]"
             >
               Save
             </Button>

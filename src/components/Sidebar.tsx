@@ -890,14 +890,14 @@ function PasteInput({
   };
 
   return (
-    <Card className="mt-3 rounded-xl border shadow-sm">
+    <Card className="mt-3 rounded-xl shadow-sm ring-1 ring-orange-500/30 dark:ring-[color:var(--dm-border)]">
       <CardContent className="pt-4">
         <Textarea
           placeholder="Paste markdown here..."
           value={value}
           onChange={(e) => setValue(e.target.value)}
           rows={4}
-          className="mb-2"
+          className="mb-2 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
         />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>
@@ -908,6 +908,7 @@ function PasteInput({
             size="sm"
             onClick={handleSubmit}
             disabled={!value.trim()}
+            className="bg-orange-600 text-white hover:bg-orange-700 dark:[background-color:var(--dm-btn)] dark:hover:[background-color:var(--dm-btn-hover)]"
           >
             Add
           </Button>
