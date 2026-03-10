@@ -295,7 +295,7 @@ function WorkspaceSection({
                   <div
                     role="button"
                     tabIndex={0}
-                    className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/ws:opacity-100 hover:bg-sidebar-accent dark:group-hover/ws:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
+                    className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded transition-opacity hover:bg-sidebar-accent text-orange-600 dark:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") e.preventDefault();
                     }}
@@ -525,7 +525,7 @@ function FolderItem({
                 <div
                   role="button"
                   tabIndex={0}
-                  className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/folder:opacity-100 hover:bg-sidebar-accent dark:group-hover/folder:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
+                  className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded transition-opacity hover:bg-sidebar-accent text-orange-600 dark:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") e.preventDefault();
                   }}
@@ -625,7 +625,6 @@ function FileItem({
   onRename: () => void;
   onMoveDocument: (docId: string, workspaceId: string, folderId: string | null) => void;
 }) {
-  const [showMenu, setShowMenu] = useState(false);
   const displayName = getFirstHeading(doc.content) ?? doc.title;
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -643,8 +642,6 @@ function FileItem({
           ? "bg-orange-200/50 dark:[background-color:var(--dm-bg)]"
           : "hover:bg-orange-200/50 dark:hover:[background-color:var(--dm-bg)]"
       )}
-      onMouseEnter={() => setShowMenu(true)}
-      onMouseLeave={() => setShowMenu(false)}
       onClick={(e) => {
         if (!(e.target as HTMLElement).closest("[data-slot='dropdown-menu-trigger']")) {
           onSelect();
@@ -673,10 +670,7 @@ function FileItem({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className={cn(
-                  "size-6 shrink-0 rounded-md transition-opacity",
-                  showMenu ? "opacity-100" : "opacity-0"
-                )}
+                className="size-6 shrink-0 rounded-md transition-opacity text-orange-600 dark:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="size-3.5" />
