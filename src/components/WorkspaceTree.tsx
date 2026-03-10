@@ -295,7 +295,7 @@ function WorkspaceSection({
                   <div
                     role="button"
                     tabIndex={0}
-                    className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/ws:opacity-100 hover:bg-sidebar-accent"
+                    className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/ws:opacity-100 hover:bg-sidebar-accent dark:group-hover/ws:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
                     onKeyDown={(e) => {
                       if (e.key === "Enter" || e.key === " ") e.preventDefault();
                     }}
@@ -525,7 +525,7 @@ function FolderItem({
                 <div
                   role="button"
                   tabIndex={0}
-                  className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/folder:opacity-100 hover:bg-sidebar-accent"
+                  className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded opacity-0 transition-opacity group-hover/folder:opacity-100 hover:bg-sidebar-accent dark:group-hover/folder:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") e.preventDefault();
                   }}

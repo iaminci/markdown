@@ -60,17 +60,33 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const accent = getInitialAccent();
     setDarkAccentState(accent);
+    if (initial === "dark") {
+      document.documentElement.setAttribute("data-dark-accent", accent);
+    } else {
+      document.documentElement.removeAttribute("data-dark-accent");
+    }
   }, []);
 
   const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
     localStorage.setItem("md-viewer-theme", newTheme);
     document.documentElement.classList.toggle("dark", newTheme === "dark");
+    if (newTheme === "dark") {
+      document.documentElement.setAttribute(
+        "data-dark-accent",
+        (localStorage.getItem(DARK_ACCENT_KEY) as DarkAccent) || "amber"
+      );
+    } else {
+      document.documentElement.removeAttribute("data-dark-accent");
+    }
   }, []);
 
   const setDarkAccent = useCallback((accent: DarkAccent) => {
     setDarkAccentState(accent);
     localStorage.setItem(DARK_ACCENT_KEY, accent);
+    if (document.documentElement.classList.contains("dark")) {
+      document.documentElement.setAttribute("data-dark-accent", accent);
+    }
   }, []);
 
   if (!mounted) {

@@ -517,7 +517,7 @@ export function Sidebar({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-7 shrink-0"
+                  className="size-7 shrink-0 dark:[color:var(--dm-text)]"
                   onClick={handleAddWorkspace}
                   title="New workspace"
                 >
