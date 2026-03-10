@@ -823,7 +823,7 @@ export function Sidebar({
       </AlertDialog>
 
       <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-        <DialogContent className="sm:max-w-sm" showCloseButton>
+        <DialogContent className="sm:max-w-sm ring-orange-500/30 dark:ring-[color:var(--dm-border)]" showCloseButton>
           <DialogHeader>
             <DialogTitle>Export workspaces</DialogTitle>
           </DialogHeader>
@@ -835,10 +835,11 @@ export function Sidebar({
                   exportSelectedIds.size === sortedWorkspaces.length
                 }
                 onCheckedChange={toggleExportSelectAll}
+                className="data-checked:border-orange-500 data-checked:bg-orange-600 dark:data-checked:[border-color:var(--dm-btn)] dark:data-checked:[background-color:var(--dm-btn)]"
               />
               <span className="text-sm font-medium">Select all</span>
             </label>
-            <div className="max-h-48 overflow-y-auto flex flex-col gap-1 border rounded-lg p-2">
+            <div className="max-h-48 overflow-y-auto flex flex-col gap-1 border border-orange-500/30 rounded-lg p-2 dark:[border-color:var(--dm-border)]">
               {sortedWorkspaces.map((ws) => (
                 <label
                   key={ws.id}
@@ -847,6 +848,7 @@ export function Sidebar({
                   <Checkbox
                     checked={exportSelectedIds.has(ws.id)}
                     onCheckedChange={() => toggleExportWorkspace(ws.id)}
+                    className="data-checked:border-orange-500 data-checked:bg-orange-600 dark:data-checked:[border-color:var(--dm-btn)] dark:data-checked:[background-color:var(--dm-btn)]"
                   />
                   <span className="text-sm truncate">{ws.name}</span>
                 </label>
@@ -860,6 +862,7 @@ export function Sidebar({
             <Button
               onClick={() => void handleExportSelected()}
               disabled={exportSelectedIds.size === 0}
+              className="bg-orange-600 text-white hover:bg-orange-700 dark:[background-color:var(--dm-btn)] dark:hover:[background-color:var(--dm-btn-hover)]"
             >
               Export {exportSelectedIds.size > 0 ? `(${exportSelectedIds.size})` : ""}
             </Button>
