@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 function hashContent(s: string): number {
@@ -40,7 +40,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { Pencil } from "lucide-react";
+import { Pencil, AlertTriangleIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const CURRENT_DOC_KEY = "md-viewer-current-doc";
@@ -51,6 +51,7 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [currentDoc, setCurrentDoc] = useState<Document | null>(null);
+  const navigatingToHomeRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editContent, setEditContent] = useState("");
@@ -68,6 +69,13 @@ function HomeContent() {
       setCurrentDoc(null);
       return;
     }
+    if (navigatingToHomeRef.current) {
+      setCurrentDoc(null);
+      if (!searchParams.get("doc")) {
+        navigatingToHomeRef.current = false;
+      }
+      return;
+    }
     if (currentDoc && !documents.find((d) => d.id === currentDoc.id)) {
       setCurrentDoc(documents[0] ?? null);
       return;
@@ -81,8 +89,6 @@ function HomeContent() {
       : null;
     if (preferred) {
       setCurrentDoc(preferred);
-    } else if (!currentDoc) {
-      setCurrentDoc(documents[0]);
     }
   }, [documents, searchParams, currentDoc]);
 
@@ -160,6 +166,7 @@ function HomeContent() {
         documents={documents}
         currentId={currentDoc?.id ?? null}
         onSelectDocument={async (doc) => {
+          navigatingToHomeRef.current = false;
           const fresh = await getDocument(doc.id);
           setCurrentDoc(fresh ?? doc);
           const params = new URLSearchParams(searchParams.toString());
@@ -172,11 +179,23 @@ function HomeContent() {
       />
 
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="relative flex h-12 shrink-0 items-center border-b border-orange-500/30 dark:[border-color:var(--dm-border)] px-4">
-          <h1 className="absolute left-[calc(50vw-16rem)] -translate-x-1/2 text-2xl font-semibold tracking-[-0.02em] text-foreground">
+        <header className="relative flex h-12 shrink-0 items-center border-b border-orange-500/50 dark:[border-color:var(--dm-border)] px-4">
+          <button
+            type="button"
+            onClick={() => {
+              navigatingToHomeRef.current = true;
+              setCurrentDoc(null);
+              if (typeof window !== "undefined") {
+                localStorage.removeItem(CURRENT_DOC_KEY);
+              }
+              router.replace(pathname, { scroll: false });
+            }}
+            className="absolute left-[calc(50vw-16rem)] -translate-x-1/2 text-2xl font-semibold tracking-[-0.02em] text-foreground cursor-pointer hover:opacity-80 transition-opacity"
+            aria-label="Go to home"
+          >
             <span>Opsly </span>
             <span className="text-orange-500 dark:[color:var(--dm-text)]">MD</span>
-          </h1>
+          </button>
           <div className="ml-auto flex items-center gap-1">
             <DarkAccentPicker />
             <ThemeToggle />
@@ -206,7 +225,7 @@ function HomeContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
                     onClick={handleEditOpen}
                   >
                     <Pencil className="mr-1.5 size-4" />
@@ -216,7 +235,7 @@ function HomeContent() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
                     onClick={() => {
                       const blob = new Blob([currentDoc.content], {
                         type: "text/markdown",
@@ -241,7 +260,7 @@ function HomeContent() {
           </div>
 
           {currentDoc && (
-            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto overflow-x-hidden border-l border-orange-500/30 dark:[border-color:var(--dm-border)] px-6 py-8 lg:block print:hidden">
+            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto overflow-x-hidden border-l border-orange-500/50 dark:[border-color:var(--dm-border)] px-6 py-8 lg:block print:hidden">
               <TableOfContents
                 key={`${currentDoc.id}-${hashContent(currentDoc.content)}`}
                 content={currentDoc.content}

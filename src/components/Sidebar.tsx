@@ -478,7 +478,7 @@ export function Sidebar({
     : null;
 
   return (
-    <ShadcnSidebar collapsible="none" className="print:hidden border-r border-orange-500/30 dark:[border-color:var(--dm-border)]">
+    <ShadcnSidebar collapsible="none" className="print:hidden border-r border-orange-500/50 dark:[border-color:var(--dm-border)]">
       <input
         ref={fileInputRef}
         type="file"
@@ -554,14 +554,14 @@ export function Sidebar({
           </SidebarGroup>
         </div>
 
-        <div className="shrink-0 border-t border-orange-500/30 dark:[border-color:var(--dm-border)] px-2 py-2">
+        <div className="shrink-0 border-t border-orange-500/50 dark:[border-color:var(--dm-border)] px-2 py-2">
           <div className="flex flex-col gap-1.5">
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => setShowPaste(!showPaste)}
-              className="w-full rounded-lg border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+              className="w-full rounded-lg border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
             >
               Paste Markdown
             </Button>
@@ -578,7 +578,7 @@ export function Sidebar({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
               onClick={handleImportWorkspace}
               title="Import workspace"
               >
@@ -589,7 +589,7 @@ export function Sidebar({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+                className="flex-1 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
                 onClick={handleExportClick}
                 title={selectedWorkspaceId ? "Export workspace" : "Export all workspaces"}
               >
@@ -823,7 +823,7 @@ export function Sidebar({
       </AlertDialog>
 
       <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
-        <DialogContent className="sm:max-w-sm ring-orange-500/30 dark:ring-[color:var(--dm-border)]" showCloseButton>
+        <DialogContent className="sm:max-w-sm ring-orange-500/50 dark:ring-[color:var(--dm-border)]" showCloseButton>
           <DialogHeader>
             <DialogTitle>Export workspaces</DialogTitle>
           </DialogHeader>
@@ -839,7 +839,7 @@ export function Sidebar({
               />
               <span className="text-sm font-medium">Select all</span>
             </label>
-            <div className="max-h-48 overflow-y-auto flex flex-col gap-1 border border-orange-500/30 rounded-lg p-2 dark:[border-color:var(--dm-border)]">
+            <div className="max-h-48 overflow-y-auto flex flex-col gap-1 border border-orange-500/50 rounded-lg p-2 dark:[border-color:var(--dm-border)]">
               {sortedWorkspaces.map((ws) => (
                 <label
                   key={ws.id}
@@ -893,14 +893,14 @@ function PasteInput({
   };
 
   return (
-    <Card className="mt-3 rounded-xl shadow-sm ring-1 ring-orange-500/30 dark:ring-[color:var(--dm-border)]">
+    <Card className="mt-3 rounded-xl shadow-sm ring-1 ring-orange-500/50 dark:ring-[color:var(--dm-border)]">
       <CardContent className="pt-4">
         <Textarea
           placeholder="Paste markdown here..."
           value={value}
           onChange={(e) => setValue(e.target.value)}
           rows={4}
-          className="mb-2 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+          className="mb-2 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
         />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>

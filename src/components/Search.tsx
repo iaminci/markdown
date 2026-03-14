@@ -51,7 +51,7 @@ export function Search({ documents, onSelect }: SearchProps) {
           onChange={(e) => search(e.target.value)}
           onFocus={() => query && setIsOpen(true)}
           onBlur={() => setTimeout(() => setIsOpen(false), 150)}
-          className="pl-8 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/30 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+          className="pl-8 border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
         />
       </div>
       {isOpen && results.length > 0 && (

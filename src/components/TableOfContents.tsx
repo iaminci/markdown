@@ -52,7 +52,7 @@ export function TableOfContents({ content }: TableOfContentsProps) {
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         On this page
       </h3>
-      <ul className="space-y-1 border-l border-orange-500/30 dark:[border-color:var(--dm-border)] pl-3">
+      <ul className="space-y-1 border-l border-orange-500/50 dark:[border-color:var(--dm-border)] pl-3">
         {headings.map(({ id, text, level }) => (
           <li
             key={id}
