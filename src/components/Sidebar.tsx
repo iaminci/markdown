@@ -69,6 +69,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Upload, Download, Trash2, FileText, Search as SearchIcon, ClipboardPaste, FileUp } from "lucide-react";
 import { toast } from "sonner";
+import { CommandPalette } from "./CommandPalette";
 
 interface SidebarProps {
   documents: Document[];
@@ -125,6 +126,7 @@ export function Sidebar({
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
 
   const WORKSPACE_KEY = "md-viewer-current-workspace";
 
@@ -1027,6 +1029,27 @@ export function Sidebar({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <CommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        handlers={{
+          onCreateDocument: () =>
+            handleAddFile(
+              selectedWorkspaceId ?? sortedWorkspaces[0]?.id ?? "default",
+              null
+            ),
+          onCreateFolder: () =>
+            handleAddFolder(
+              selectedWorkspaceId ?? sortedWorkspaces[0]?.id ?? "default",
+              null
+            ),
+          onSearchDocuments: () => setOpen(true),
+          onSwitchWorkspace: () => setOpen(true),
+          onExportWorkspace: handleExportClick,
+          onImportWorkspace: handleImportWorkspace,
+        }}
+      />
     </ShadcnSidebar>
   );
 }

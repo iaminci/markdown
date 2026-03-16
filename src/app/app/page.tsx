@@ -16,6 +16,22 @@ function getFirstHeading(content: string): string | null {
   const match = content.match(/^#{1,6}\s+(.+)$/m);
   return match ? match[1].replace(/#+\s*$/, "").trim() : null;
 }
+
+function getSubtitle(content: string): string | null {
+  const lines = content.split("\n");
+  const firstHeadingIdx = lines.findIndex((l) => /^#{1,6}\s+/.test(l));
+  if (firstHeadingIdx >= 0) {
+    const afterHeading = lines.slice(firstHeadingIdx + 1);
+    const para: string[] = [];
+    for (const line of afterHeading) {
+      if (/^\s*$/.test(line)) break;
+      para.push(line.trim());
+    }
+    return para.join(" ").trim() || null;
+  }
+  const firstNonEmpty = lines.find((l) => l.trim().length > 0);
+  return firstNonEmpty?.trim() ?? null;
+}
 import type { Document } from "@/types/document";
 import {
   getDocuments,
@@ -31,6 +47,8 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { DarkAccentPicker } from "@/components/DarkAccentPicker";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { TableOfContents } from "@/components/TableOfContents";
+import { ReadingProgressBar } from "@/components/ReadingProgressBar";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -46,6 +64,66 @@ import { toast } from "sonner";
 
 const CURRENT_DOC_KEY = "md-viewer-current-doc";
 
+function formatDate(ts: number): string {
+  return new Date(ts).toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function DocumentInfo({ doc }: { doc: Document }) {
+  const wordCount = doc.content.trim()
+    ? doc.content.trim().split(/\s+/).length
+    : 0;
+  const readingMinutes = wordCount === 0 ? 0 : Math.max(1, Math.ceil(wordCount / 200));
+  return (
+    <div className="space-y-3 text-sm text-muted-foreground">
+      <div>
+        <span className="font-medium text-foreground">Created</span>
+        <p>{formatDate(doc.createdAt)}</p>
+      </div>
+      <div>
+        <span className="font-medium text-foreground">Words</span>
+        <p>{wordCount.toLocaleString()}</p>
+      </div>
+      <div>
+        <span className="font-medium text-foreground">Reading time</span>
+        <p>~{readingMinutes} min</p>
+      </div>
+    </div>
+  );
+}
+
+function DocumentRightSidebar({
+  doc,
+  content,
+  contentScrollRef,
+}: {
+  doc: Document;
+  content: string;
+  contentScrollRef: React.RefObject<HTMLDivElement | null>;
+}) {
+  return (
+    <Tabs defaultValue="on-this-page" className="flex flex-col h-full">
+      <TabsList variant="line" className="w-full justify-start h-8 mb-2">
+        <TabsTrigger value="on-this-page">On This Page</TabsTrigger>
+        <TabsTrigger value="info">Info</TabsTrigger>
+      </TabsList>
+      <TabsContent value="on-this-page" className="mt-0">
+        <TableOfContents
+          key={`${doc.id}-${hashContent(content)}`}
+          content={content}
+          scrollContainerRef={contentScrollRef}
+        />
+      </TabsContent>
+      <TabsContent value="info" className="mt-0">
+        <DocumentInfo doc={doc} />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
 function AppContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -56,6 +134,7 @@ function AppContent() {
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editContent, setEditContent] = useState("");
+  const contentScrollRef = useRef<HTMLDivElement>(null);
   const refresh = useCallback(async () => {
     const docs = await getDocuments();
     setDocuments(docs);
@@ -196,68 +275,86 @@ function AppContent() {
           </div>
         </header>
         <div className="flex min-h-0 flex-1 overflow-hidden">
-          <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-8 py-8 print:px-0">
+          <div
+            ref={contentScrollRef}
+            className="min-h-0 min-w-0 flex-1 overflow-y-auto overflow-x-hidden px-8 py-8 print:px-0"
+          >
           {currentDoc ? (
-            <div className="mx-auto max-w-3xl">
-              <div className="mb-6 flex items-start justify-between gap-4 print:mb-4">
-                {(() => {
-                  const firstHeading = getFirstHeading(currentDoc.content);
-                  const titleNorm = currentDoc.title.replace(/^#+\s*/, "").trim() || currentDoc.title;
-                  const headingMatchesTitle =
-                    firstHeading &&
-                    titleNorm.toLowerCase() === firstHeading.toLowerCase();
-                  const isReadme = /^readme(\s*\(\d+\))*$/i.test(currentDoc.title);
-                  if (isReadme || headingMatchesTitle) return <div className="min-w-0 flex-1" />;
-                  return (
-                    <h1 className="text-2xl font-semibold text-foreground min-w-0 flex-1">
-                      {currentDoc.title}
-                    </h1>
-                  );
-                })()}
-                <div className="flex shrink-0 gap-2 order-last">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
-                    onClick={handleEditOpen}
-                  >
-                    <Pencil className="mr-1.5 size-4" />
-                    Edit
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
-                    onClick={() => {
-                      const blob = new Blob([currentDoc.content], {
-                        type: "text/markdown",
-                      });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement("a");
-                      a.href = url;
-                      a.download = `${currentDoc.title.replace(/\.md$/i, "")}.md`;
-                      a.click();
-                      URL.revokeObjectURL(url);
-                    }}
-                  >
-                    Download
-                  </Button>
+            <>
+              <ReadingProgressBar scrollContainerRef={contentScrollRef} />
+              <div className="mx-auto max-w-4xl">
+                <div className="mb-6 flex flex-col gap-3 print:mb-4">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      {(() => {
+                        const firstHeading = getFirstHeading(currentDoc.content);
+                        const titleNorm = currentDoc.title.replace(/^#+\s*/, "").trim() || currentDoc.title;
+                        const headingMatchesTitle =
+                          firstHeading &&
+                          titleNorm.toLowerCase() === firstHeading.toLowerCase();
+                        const isReadme = /^readme(\s*\(\d+\))*$/i.test(currentDoc.title);
+                        if (!(isReadme || headingMatchesTitle)) {
+                          return (
+                            <h1 className="text-3xl font-semibold text-foreground">
+                              {currentDoc.title}
+                            </h1>
+                          );
+                        }
+                        return null;
+                      })()}
+                      {getSubtitle(currentDoc.content) && (
+                        <p className="mt-1 text-muted-foreground text-sm">
+                          {getSubtitle(currentDoc.content)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex shrink-0 gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+                        onClick={handleEditOpen}
+                      >
+                        <Pencil className="mr-1.5 size-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
+                        onClick={() => {
+                          const blob = new Blob([currentDoc.content], {
+                            type: "text/markdown",
+                          });
+                          const url = URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = `${currentDoc.title.replace(/\.md$/i, "")}.md`;
+                          a.click();
+                          URL.revokeObjectURL(url);
+                        }}
+                      >
+                        Download
+                      </Button>
+                    </div>
+                  </div>
                 </div>
+                <MarkdownRenderer content={currentDoc.content} />
               </div>
-              <MarkdownRenderer content={currentDoc.content} />
-            </div>
+            </>
           ) : (
             <EmptyState onLoadSample={handleAddDocument} />
           )}
           </div>
 
           {currentDoc && (
-            <div className="hidden min-h-0 w-48 shrink-0 overflow-y-auto overflow-x-hidden border-l border-orange-500/50 dark:[border-color:var(--dm-border)] px-6 py-8 lg:block print:hidden">
-              <TableOfContents
-                key={`${currentDoc.id}-${hashContent(currentDoc.content)}`}
+            <div className="hidden min-h-0 w-56 shrink-0 overflow-y-auto overflow-x-hidden border-l border-orange-500/50 dark:[border-color:var(--dm-border)] px-4 py-6 lg:block print:hidden">
+              <DocumentRightSidebar
+                doc={currentDoc}
                 content={currentDoc.content}
+                contentScrollRef={contentScrollRef}
               />
             </div>
           )}
