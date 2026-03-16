@@ -16,7 +16,14 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   getWorkspaces,
   getAllFolders,
@@ -60,7 +67,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Upload, Download, Trash2 } from "lucide-react";
+import { Plus, Upload, Download, Trash2, FileText, Search as SearchIcon, ClipboardPaste, FileUp } from "lucide-react";
 import { toast } from "sonner";
 
 interface SidebarProps {
@@ -80,7 +87,10 @@ export function Sidebar({
   onAddDocument,
   onRefresh,
 }: SidebarProps) {
+  const { setOpen, state } = useSidebar();
+  const isCollapsed = state === "collapsed";
   const [showPaste, setShowPaste] = useState(false);
+  const [pasteValue, setPasteValue] = useState("");
   const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [folderDialogTarget, setFolderDialogTarget] = useState<{
@@ -478,7 +488,8 @@ export function Sidebar({
     : null;
 
   return (
-    <ShadcnSidebar collapsible="none" className="print:hidden border-r border-orange-500/50 dark:[border-color:var(--dm-border)]">
+    <ShadcnSidebar collapsible="icon" className="print:hidden border-r border-orange-500/50 dark:[border-color:var(--dm-border)]">
+      <SidebarRail />
       <input
         ref={fileInputRef}
         type="file"
@@ -494,6 +505,123 @@ export function Sidebar({
         className="hidden"
       />
       <SidebarContent className="flex flex-col min-h-0 overflow-hidden">
+        {/* Icon bar - visible only when sidebar is collapsed to icon mode */}
+        {isCollapsed && (
+        <div className="flex flex-col items-center gap-2 pt-1.5 pb-4 text-sidebar-foreground">
+          <Tooltip>
+            <TooltipTrigger
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:[stroke:var(--sidebar-foreground)]"
+              onClick={() => setOpen(true)}
+              aria-label="Search"
+            >
+              <SearchIcon className="size-5" />
+            </TooltipTrigger>
+            <TooltipContent side="right">Search</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:[stroke:var(--sidebar-foreground)]"
+              onClick={() => {
+                setOpen(true);
+                handleAddWorkspace();
+              }}
+              aria-label="New workspace"
+            >
+              <Plus className="size-5" />
+            </TooltipTrigger>
+            <TooltipContent side="right">New Workspace</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:[stroke:var(--sidebar-foreground)]"
+              onClick={() => setOpen(true)}
+              aria-label="Documents"
+            >
+              <FileText className="size-5" />
+            </TooltipTrigger>
+            <TooltipContent side="right">Documents</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:[stroke:var(--sidebar-foreground)]"
+              onClick={() => {
+                setOpen(true);
+                handleUploadFile(selectedWorkspaceId ?? sortedWorkspaces[0]?.id ?? "default", null);
+              }}
+              aria-label="Upload .md file"
+            >
+              <FileUp className="size-5" />
+            </TooltipTrigger>
+            <TooltipContent side="right">Upload .md file</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:[stroke:var(--sidebar-foreground)]"
+              onClick={() => {
+                setOpen(true);
+                setShowPaste(true);
+              }}
+              aria-label="Paste"
+            >
+              <ClipboardPaste className="size-5" />
+            </TooltipTrigger>
+            <TooltipContent side="right">Paste .md</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:[stroke:var(--sidebar-foreground)]"
+              onClick={() => {
+                setOpen(true);
+                handleImportWorkspace();
+              }}
+              aria-label="Import"
+            >
+              <Upload className="size-5" />
+            </TooltipTrigger>
+            <TooltipContent side="right">Import Workspace</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:[stroke:var(--sidebar-foreground)]"
+              onClick={() => {
+                setOpen(true);
+                handleExportClick();
+              }}
+              aria-label="Export"
+            >
+              <Download className="size-5" />
+            </TooltipTrigger>
+            <TooltipContent side="right">Export Workspace</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger
+              type="button"
+              className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-destructive transition-colors hover:bg-sidebar-accent hover:text-destructive [&_svg]:![stroke:var(--destructive)]"
+              onClick={() => {
+                setOpen(true);
+                handleDeleteAllClick();
+              }}
+              aria-label={selectedWorkspaceId ? "Delete workspace" : "Delete Everything"}
+            >
+              <Trash2 className="size-5 text-destructive [&_path]:[stroke:var(--destructive)] [&_line]:[stroke:var(--destructive)]" />
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {selectedWorkspaceId ? "Delete workspace" : "Delete Everything"}
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        )}
+
+        {/* Main content - hidden when sidebar is collapsed to icon mode */}
+        {!isCollapsed && (
+        <div className="flex flex-1 min-h-0 flex-col">
         <div className="shrink-0 flex flex-col">
           <SidebarGroup>
             <SidebarGroupLabel className="sr-only">Search</SidebarGroupLabel>
@@ -560,19 +688,11 @@ export function Sidebar({
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowPaste(!showPaste)}
+              onClick={() => setShowPaste(true)}
               className="w-full rounded-lg border-orange-500/50 focus-visible:border-orange-500 focus-visible:ring-orange-500/50 dark:[border-color:var(--dm-border)] dark:focus-visible:[border-color:var(--dm-text)] dark:focus-visible:[--tw-ring-color:var(--dm-focus-ring)]"
             >
               Paste Markdown
             </Button>
-            {showPaste && (
-              <PasteInput
-                onClose={() => setShowPaste(false)}
-                onSubmit={(title, content) =>
-                  onAddDocument(title, content, selectedWorkspaceId ?? undefined, null)
-                }
-              />
-            )}
             <div className="flex gap-1.5">
               <Button
                 type="button"
@@ -614,6 +734,8 @@ export function Sidebar({
             </Button>
           </div>
         </div>
+        </div>
+        )}
       </SidebarContent>
 
       <CreateNameDialog
@@ -671,6 +793,42 @@ export function Sidebar({
         submitLabel="Rename"
         onSubmit={handleRenameDocumentSubmit}
       />
+
+      <Dialog open={showPaste} onOpenChange={(open) => { setShowPaste(open); if (!open) setPasteValue(""); }}>
+        <DialogContent className="sm:max-w-3xl max-h-[85vh] flex flex-col shadow-xl ring-1 ring-border/50">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">Paste Markdown</DialogTitle>
+          </DialogHeader>
+          <div className="min-h-0 flex-1 py-2">
+            <Textarea
+              value={pasteValue}
+              onChange={(e) => setPasteValue(e.target.value)}
+              placeholder="Paste markdown here..."
+              className="field-sizing-fixed min-h-[50vh] max-h-[60vh] w-full resize-y overflow-y-auto font-mono text-sm"
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-3">
+            <Button variant="outline" onClick={() => { setShowPaste(false); setPasteValue(""); }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                const trimmed = pasteValue.trim();
+                if (!trimmed) return;
+                const firstLine = trimmed.split("\n")[0]?.trim() || "";
+                const title = firstLine || "Untitled";
+                onAddDocument(title, trimmed, selectedWorkspaceId ?? undefined, null);
+                setPasteValue("");
+                setShowPaste(false);
+              }}
+              disabled={!pasteValue.trim()}
+              className="bg-orange-600 text-white hover:bg-orange-700 dark:[background-color:var(--dm-btn)] dark:hover:[background-color:var(--dm-btn-hover)]"
+            >
+              Add
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={exportConfirmDialogOpen} onOpenChange={setExportConfirmDialogOpen}>
         <AlertDialogContent>

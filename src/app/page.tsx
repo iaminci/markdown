@@ -39,7 +39,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { Pencil, AlertTriangleIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -179,7 +179,8 @@ function HomeContent() {
       />
 
       <SidebarInset className="min-h-0 overflow-hidden">
-        <header className="relative flex h-12 shrink-0 items-center border-b border-orange-500/50 dark:[border-color:var(--dm-border)] px-4">
+        <header className="relative flex h-12 shrink-0 items-center gap-2 border-b border-orange-500/50 dark:[border-color:var(--dm-border)] px-4">
+          <SidebarTrigger className="shrink-0" />
           <button
             type="button"
             onClick={() => {
@@ -190,7 +191,7 @@ function HomeContent() {
               }
               router.replace(pathname, { scroll: false });
             }}
-            className="absolute left-[calc(50vw-16rem)] -translate-x-1/2 text-2xl font-semibold tracking-[-0.02em] text-foreground cursor-pointer hover:opacity-80 transition-opacity"
+            className="text-2xl font-semibold tracking-[-0.02em] text-foreground cursor-pointer hover:opacity-80 transition-opacity shrink-0"
             aria-label="Go to home"
           >
             <span>Opsly </span>
