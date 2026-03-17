@@ -131,6 +131,7 @@ function AppContent() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [currentDoc, setCurrentDoc] = useState<Document | null>(null);
   const navigatingToHomeRef = useRef(false);
+  const justSelectedDocIdRef = useRef<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editContent, setEditContent] = useState("");
@@ -160,6 +161,12 @@ function AppContent() {
       setCurrentDoc(documents[0] ?? null);
       return;
     }
+    // Skip URL→state sync when user just clicked a doc; trust onSelectDocument's state.
+    // Prevents Effect 1 from reverting to stale URL before router.replace completes.
+    if (justSelectedDocIdRef.current) {
+      justSelectedDocIdRef.current = null;
+      return;
+    }
     const docIdFromUrl = searchParams.get("doc");
     const docIdFromStorage =
       typeof window !== "undefined" ? localStorage.getItem(CURRENT_DOC_KEY) : null;
@@ -175,11 +182,10 @@ function AppContent() {
   useEffect(() => {
     if (!currentDoc || typeof window === "undefined") return;
     localStorage.setItem(CURRENT_DOC_KEY, currentDoc.id);
-    const params = new URLSearchParams(searchParams.toString());
-    if (params.get("doc") === currentDoc.id) return;
-    params.set("doc", currentDoc.id);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [currentDoc?.id, pathname, router, searchParams]);
+    // Do NOT sync currentDoc→URL here. That causes a race: router.replace is async,
+    // so Effect 1 can run with stale searchParams and revert the user's selection.
+    // URL is updated only in onSelectDocument.
+  }, [currentDoc?.id]);
 
   const handleAddDocument = useCallback(
     async (
@@ -247,6 +253,7 @@ function AppContent() {
         currentId={currentDoc?.id ?? null}
         onSelectDocument={async (doc) => {
           navigatingToHomeRef.current = false;
+          justSelectedDocIdRef.current = doc.id;
           const fresh = await getDocument(doc.id);
           setCurrentDoc(fresh ?? doc);
           const params = new URLSearchParams(searchParams.toString());

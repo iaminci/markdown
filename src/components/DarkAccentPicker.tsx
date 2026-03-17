@@ -12,18 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const ACCENTS: { value: DarkAccent; label: string; color: string }[] = [
-  { value: "amber", label: "Amber", color: "bg-amber-400" },
-  { value: "sky", label: "Sky", color: "bg-sky-400" },
-  { value: "emerald", label: "Emerald", color: "bg-emerald-400" },
-  { value: "violet", label: "Violet", color: "bg-violet-400" },
-  { value: "rose", label: "Rose", color: "bg-rose-400" },
-  { value: "pink", label: "Pink", color: "bg-pink-400" },
-  { value: "neon-blue", label: "Neon Blue", color: "bg-cyan-400" },
-  { value: "teal", label: "Teal", color: "bg-teal-400" },
-  { value: "indigo", label: "Indigo", color: "bg-indigo-400" },
-  { value: "fuchsia", label: "Fuchsia", color: "bg-fuchsia-400" },
-  { value: "orange", label: "Orange", color: "bg-orange-400" },
+const ACCENTS: { value: DarkAccent; label: string; colorClass: string }[] = [
+  { value: "amber", label: "Amber", colorClass: "bg-amber-500" },
+  { value: "sky", label: "Sky", colorClass: "bg-sky-500" },
+  { value: "emerald", label: "Emerald", colorClass: "bg-emerald-500" },
+  { value: "violet", label: "Violet", colorClass: "bg-violet-500" },
+  { value: "rose", label: "Rose", colorClass: "bg-rose-500" },
+  { value: "indigo", label: "Indigo", colorClass: "bg-indigo-500" },
+  { value: "orange", label: "Orange", colorClass: "bg-orange-500" },
 ];
 
 export function DarkAccentPicker() {
@@ -47,17 +43,17 @@ export function DarkAccentPicker() {
         }
       />
       <DropdownMenuContent align="end" className="min-w-[180px]">
-        {ACCENTS.map(({ value, label, color }) => (
+        {ACCENTS.map(({ value, label, colorClass }) => (
           <DropdownMenuItem
             key={value}
             onClick={() => setDarkAccent(value)}
             className={cn(
               "flex items-center gap-2",
-              darkAccent === value && "dark:![background-color:var(--dm-bg)]"
+              darkAccent === value && "dark:![background-color:var(--dm-bg)] dark:ring-1 dark:ring-[var(--dm-border)]"
             )}
           >
             <span
-              className={cn("size-3 shrink-0 rounded-full", color)}
+              className={cn("h-4 w-4 shrink-0 rounded-full", colorClass)}
               aria-hidden
             />
             {label}

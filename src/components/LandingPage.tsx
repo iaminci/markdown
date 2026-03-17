@@ -5,6 +5,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import {
   FolderTree,
   Search,
@@ -13,67 +14,86 @@ import {
   SquareRadical,
   Download,
   Shield,
-  Zap,
   Database,
   AlertTriangleIcon,
   Github,
+  FileText,
+  FolderOpen,
+  Moon,
+  ArrowRight,
 } from "lucide-react";
 
-const FEATURES = [
+const DEMO_MARKDOWN = `# Kubernetes Deployment
+
+\`\`\`bash
+kubectl apply -f deployment.yaml
+\`\`\`
+
+\`\`\`mermaid
+graph LR
+A --> B
+\`\`\`
+`;
+
+const CORE_PRINCIPLES = [
   {
-    icon: FolderTree,
-    title: "Workspaces & nested folders",
-    description: "Organize documents in separate workspaces. Create nested folders and mirror your file system.",
+    icon: Database,
+    title: "Local-first",
+    description: "Documents stay inside your browser storage.",
   },
   {
+    icon: Shield,
+    title: "No Accounts",
+    description: "Open the app and start writing immediately.",
+  },
+  {
+    icon: Shield,
+    title: "Privacy-first",
+    description: "No analytics, tracking, or backend services.",
+  },
+];
+
+const CAPABILITIES = [
+  {
     icon: FileCode,
-    title: "Markdown rendering",
-    description: "GFM tables, code blocks with syntax highlighting, blockquotes, and more.",
+    title: "Markdown Rendering",
+    description: "GitHub-flavored Markdown with syntax highlighting.",
   },
   {
     icon: Workflow,
-    title: "Mermaid diagrams",
-    description: "Flowcharts, sequence diagrams, and other diagrams directly in Markdown.",
+    title: "Mermaid Diagrams",
+    description: "Render flowcharts and diagrams inside documents.",
   },
   {
     icon: SquareRadical,
-    title: "KaTeX math",
-    description: "Inline and block math. LaTeX syntax fully supported.",
+    title: "Math Support",
+    description: "KaTeX rendering for technical documentation.",
+  },
+  {
+    icon: FolderOpen,
+    title: "Workspaces",
+    description: "Separate environments for different projects.",
+  },
+  {
+    icon: FolderTree,
+    title: "Nested Folders",
+    description: "Organize documents like a filesystem.",
   },
   {
     icon: Search,
-    title: "Search across documents",
-    description: "Find text across all documents in your workspace.",
+    title: "Fast Search",
+    description: "Search across all documents instantly.",
   },
   {
     icon: Download,
-    title: "Import / export",
-    description: "Export workspaces to JSON. Import them back anytime. Keep backups locally.",
-  },
-];
-
-const PILLARS = [
-  {
-    icon: Shield,
-    title: "Private by default",
-    description: "No accounts, no cloud, no servers. Nothing to sign up for.",
+    title: "Import / Export",
+    description: "Backup workspaces as JSON.",
   },
   {
-    icon: Zap,
-    title: "Instant performance",
-    description: "Everything runs in your browser. No network latency, no loading spinners.",
+    icon: Moon,
+    title: "Dark Mode",
+    description: "Comfortable reading for long documents.",
   },
-  {
-    icon: Database,
-    title: "Your data stays yours",
-    description: "IndexedDB and WebAssembly. Data never leaves your device.",
-  },
-];
-
-const STEPS = [
-  { step: 1, title: "Open the app", description: "No signup required. Click and start." },
-  { step: 2, title: "Create workspace and folders", description: "Organize your Markdown files your way." },
-  { step: 3, title: "Export workspace to keep backups", description: "Download JSON. Restore anytime." },
 ];
 
 function Navbar() {
@@ -84,13 +104,7 @@ function Navbar() {
           <span>Opsly</span>
           <span className="text-orange-500 dark:text-orange-400">MD</span>
         </Link>
-        <div className="flex items-center gap-6">
-          <a href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Features
-          </a>
-          <a href="#privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Privacy
-          </a>
+        <div className="flex items-center gap-4">
           <a
             href="https://github.com/iaminci/opsly-md"
             target="_blank"
@@ -103,7 +117,7 @@ function Navbar() {
           <Link
             href="/app"
             className={cn(
-              "inline-flex h-7 items-center justify-center rounded-lg px-2.5 text-[0.8rem] font-medium",
+              "inline-flex h-9 items-center justify-center rounded-lg px-4 text-sm font-medium",
               "bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700"
             )}
           >
@@ -124,8 +138,10 @@ function Hero() {
           Local-first Markdown Workspaces
         </h1>
         <p className="mt-6 text-lg text-muted-foreground sm:text-xl">
-          Write, organize, and view Markdown documents directly in your browser.
-          No accounts. No cloud. Your data never leaves your device.
+          Write, organize and render Markdown documents directly in your browser.
+        </p>
+        <p className="mt-2 text-muted-foreground">
+          No accounts. No cloud. Your documents stay on your device.
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link
@@ -135,45 +151,131 @@ function Hero() {
             Open App
           </Link>
           <Link href="/app" className={cn(buttonVariants({ size: "lg", variant: "outline" }))}>
-            View Example
+            View Example Workspace
           </Link>
         </div>
-        <Card className="mt-16 text-left ring-1 ring-border/50 dark:ring-border">
-          <CardContent className="p-0">
-            <div className="border-b border-border/50 bg-muted/30 px-4 py-2 font-mono text-xs text-muted-foreground">
-              README.md
-            </div>
-            <pre className="overflow-x-auto p-4 font-mono text-sm leading-relaxed text-foreground">
-{`# Welcome to Opsly MD
-
-A minimal Markdown workspace that runs **entirely in your browser**.
-
-## Features
-- No accounts • No servers • No tracking
-- Workspaces and nested folders
-- Mermaid diagrams, LaTeX math, syntax highlighting
-- Export workspaces to JSON`}
-            </pre>
-          </CardContent>
-        </Card>
+        <div className="mt-16 overflow-hidden rounded-xl border border-border/50 bg-card shadow-lg ring-1 ring-border/30 dark:ring-border/50">
+          <img
+            src="/screenshot.png"
+            alt="Opsly MD app interface with sidebar, document content, and table of contents"
+            className="w-full object-contain"
+          />
+        </div>
       </div>
     </section>
   );
 }
 
-function WhySection() {
+function LiveMarkdownDemo() {
+  return (
+    <section className="border-t border-border/50 px-4 py-24 sm:px-6">
+      <div className="mx-auto max-w-6xl">
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Live Markdown Demo
+        </h2>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+          Markdown rendering, code blocks, and diagrams.
+        </p>
+        <div className="mt-12 grid gap-0 overflow-hidden rounded-xl border border-border/50 bg-card lg:grid-cols-2">
+          <div className="border-b border-border/50 lg:border-b-0 lg:border-r">
+            <div className="border-b border-border/50 bg-muted/30 px-4 py-2 font-mono text-xs text-muted-foreground">
+              Input
+            </div>
+            <pre className="overflow-x-auto p-4 font-mono text-sm leading-relaxed text-foreground whitespace-pre">
+              {DEMO_MARKDOWN}
+            </pre>
+          </div>
+          <div>
+            <div className="border-b border-border/50 bg-muted/30 px-4 py-2 font-mono text-xs text-muted-foreground">
+              Rendered output
+            </div>
+            <div className="overflow-y-auto max-h-[400px] p-4">
+              <MarkdownRenderer content={DEMO_MARKDOWN} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function InterfaceOverview() {
+  return (
+    <section className="border-t border-border/50 px-4 py-24 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Interface Overview
+        </h2>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+          A documentation-style layout built for developers.
+        </p>
+        <div className="mt-12 relative">
+          <div className="overflow-hidden rounded-xl border border-border/50 bg-card shadow-lg ring-1 ring-border/30 dark:ring-border/50">
+            <img
+              src="/screenshot.png"
+              alt="Opsly MD interface"
+              className="w-full object-contain"
+            />
+          </div>
+          <div className="mt-8 grid gap-6 sm:grid-cols-3">
+            <Card className="ring-1 ring-border/50 ring-orange-500/30">
+              <CardHeader className="pb-2">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-orange-500/10">
+                  <FolderTree className="size-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <CardTitle className="text-base">Sidebar</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Organize documents in workspaces and folders.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="ring-1 ring-border/50 ring-orange-500/30">
+              <CardHeader className="pb-2">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-orange-500/10">
+                  <FileText className="size-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <CardTitle className="text-base">Markdown Renderer</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Clean document reading experience.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="ring-1 ring-border/50 ring-orange-500/30">
+              <CardHeader className="pb-2">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-orange-500/10">
+                  <Search className="size-5 text-orange-600 dark:text-orange-400" />
+                </div>
+                <CardTitle className="text-base">On-page Navigation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Auto-generated table of contents for long documents.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CorePrinciples() {
   return (
     <section className="border-t border-border/50 px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-4xl">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          Why Opsly MD Exists
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Core Principles
         </h2>
-        <p className="mt-4 text-lg text-muted-foreground">
-          Most note apps require accounts, cloud sync, and servers just to store text files.
-          Opsly MD takes a different approach. Everything runs locally in your browser.
+        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+          The philosophy behind Opsly MD.
         </p>
-        <div className="mt-12 grid gap-8 sm:grid-cols-3">
-          {PILLARS.map(({ icon: Icon, title, description }) => (
+        <div className="mt-12 grid gap-6 sm:grid-cols-3">
+          {CORE_PRINCIPLES.map(({ icon: Icon, title, description }) => (
             <Card key={title} className="ring-1 ring-border/50">
               <CardHeader>
                 <div className="flex size-10 items-center justify-center rounded-lg bg-orange-500/10 dark:bg-orange-500/20">
@@ -192,37 +294,15 @@ function WhySection() {
   );
 }
 
-function ProductPreview() {
-  return (
-    <section id="features" className="border-t border-border/50 px-4 py-24 sm:px-6">
-      <div className="mx-auto max-w-5xl">
-        <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          A clean workspace for Markdown documents
-        </h2>
-        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-          Workspace sidebar, folder tree, Markdown preview, and syntax highlighting—all in one place.
-        </p>
-        <div className="mt-12 overflow-hidden rounded-xl border border-border/50 bg-card shadow-lg ring-1 ring-border/30 dark:ring-border/50">
-          <img
-            src="/screenshot.png"
-            alt="Opsly MD workspace with sidebar, folder tree, and Markdown preview"
-            className="w-full object-contain"
-          />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function FeaturesGrid() {
+function Capabilities() {
   return (
     <section className="border-t border-border/50 px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-6xl">
         <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          Features
+          Capabilities
         </h2>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map(({ icon: Icon, title, description }) => (
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {CAPABILITIES.map(({ icon: Icon, title, description }) => (
             <Card key={title} className="ring-1 ring-border/50">
               <CardHeader>
                 <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
@@ -241,92 +321,90 @@ function FeaturesGrid() {
   );
 }
 
-function PrivacySection() {
-  return (
-    <section id="privacy" className="border-t border-border/50 px-4 py-24 sm:px-6">
-      <div className="mx-auto max-w-3xl">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          Runs entirely in your browser
-        </h2>
-        <p className="mt-4 text-lg text-muted-foreground">
-          Opsly MD runs entirely in your browser.
-        </p>
-        <p className="mt-2 text-muted-foreground">
-          Documents are stored locally using IndexedDB.
-          SQLite runs in WebAssembly via sql.js.
-        </p>
-        <p className="mt-2 text-muted-foreground">
-          There are no servers, accounts, or tracking.
-        </p>
-        <Card className="mt-8 ring-1 ring-border/50">
-          <CardContent className="pt-6">
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex items-center gap-2">
-                <Database className="size-4 shrink-0 text-orange-500" />
-                IndexedDB for document storage
-              </li>
-              <li className="flex items-center gap-2">
-                <Database className="size-4 shrink-0 text-orange-500" />
-                sql.js for WebAssembly SQLite
-              </li>
-              <li className="flex items-center gap-2">
-                <Shield className="size-4 shrink-0 text-orange-500" />
-                Zero server round-trips for your data
-              </li>
-            </ul>
-          </CardContent>
-        </Card>
-      </div>
-    </section>
-  );
-}
-
-function HowItWorks() {
-  return (
-    <section className="border-t border-border/50 px-4 py-24 sm:px-6">
-      <div className="mx-auto max-w-3xl">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          How It Works
-        </h2>
-        <div className="mt-12 space-y-8">
-          {STEPS.map(({ step, title, description }) => (
-            <div key={step} className="flex gap-6">
-              <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-orange-500/10 font-semibold text-orange-600 dark:bg-orange-500/20 dark:text-orange-400">
-                {step}
-              </div>
-              <div>
-                <h3 className="font-medium text-foreground">{title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-12">
-          <Link href="/app" className={cn(buttonVariants({ size: "lg" }), "bg-orange-600 text-white hover:bg-orange-700")}>
-            Open App
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function StorageNotice() {
+function LocalStorageTransparency() {
   return (
     <section className="border-t border-border/50 px-4 py-24 sm:px-6">
       <div className="mx-auto max-w-2xl">
-        <Card className="border-amber-500/50 bg-amber-50/50 ring-1 ring-amber-500/30 dark:border-amber-600/50 dark:bg-amber-950/20 dark:ring-amber-500/20">
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Your documents are stored locally
+        </h2>
+        <Card className="mt-8 border-amber-500/50 bg-amber-50/50 ring-1 ring-amber-500/30 dark:border-amber-600/50 dark:bg-amber-950/20 dark:ring-amber-500/20">
           <CardContent className="flex gap-4 pt-6">
             <AlertTriangleIcon className="size-5 shrink-0 text-amber-600 dark:text-amber-500" />
             <div>
-              <h3 className="font-semibold text-foreground">Documents are stored locally in your browser.</h3>
+              <p className="text-sm text-muted-foreground">
+                Opsly MD stores data directly in your browser using IndexedDB.
+              </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                Clearing browser storage or site data may remove them.
+                If browser storage is cleared, documents may be removed.
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
                 Export workspaces regularly to keep backups.
               </p>
             </div>
           </CardContent>
         </Card>
+      </div>
+    </section>
+  );
+}
+
+function Architecture() {
+  return (
+    <section className="border-t border-border/50 px-4 py-24 sm:px-6">
+      <div className="mx-auto max-w-4xl">
+        <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Architecture
+        </h2>
+        <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+          Technical transparency for developers.
+        </p>
+        <div className="mt-12 grid gap-8 sm:grid-cols-2">
+          <Card className="ring-1 ring-border/50">
+            <CardHeader>
+              <CardTitle className="text-base">Markdown processing pipeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 font-mono text-sm text-muted-foreground">
+                <div>Markdown</div>
+                <div className="flex items-center gap-2">
+                  <ArrowRight className="size-4 text-orange-500" />
+                </div>
+                <div>react-markdown</div>
+                <div className="flex items-center gap-2">
+                  <ArrowRight className="size-4 text-orange-500" />
+                </div>
+                <div>remark plugins</div>
+                <div className="flex items-center gap-2">
+                  <ArrowRight className="size-4 text-orange-500" />
+                </div>
+                <div>rehype plugins</div>
+                <div className="flex items-center gap-2">
+                  <ArrowRight className="size-4 text-orange-500" />
+                </div>
+                <div>rendered document</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="ring-1 ring-border/50">
+            <CardHeader>
+              <CardTitle className="text-base">Storage system</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 font-mono text-sm text-muted-foreground">
+                <div>SQLite (sql.js WASM)</div>
+                <div className="flex items-center gap-2">
+                  <ArrowRight className="size-4 text-orange-500" />
+                </div>
+                <div>IndexedDB</div>
+                <div className="flex items-center gap-2">
+                  <ArrowRight className="size-4 text-orange-500" />
+                </div>
+                <div>browser storage</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </section>
   );
@@ -340,12 +418,41 @@ function OpenSourceSection() {
           Open Source
         </h2>
         <p className="mt-4 text-muted-foreground">
-          Opsly MD is open source. View the code, contribute, or run it yourself.
+          Opsly MD is open source.
+          Inspect the code, suggest improvements, or contribute.
         </p>
-        <a href="https://github.com/iaminci/opsly-md" target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "mt-6 inline-flex items-center gap-2")}>
+        <a
+          href="https://github.com/iaminci/opsly-md"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(buttonVariants({ variant: "outline", size: "lg" }), "mt-6 inline-flex items-center gap-2")}
+        >
           <Github className="size-4" />
           View on GitHub
         </a>
+      </div>
+    </section>
+  );
+}
+
+function FinalCTA() {
+  return (
+    <section className="border-t border-border/50 px-4 py-24 sm:px-6">
+      <div className="mx-auto max-w-2xl text-center">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          Start using Opsly MD
+        </h2>
+        <div className="mt-8 flex flex-wrap justify-center gap-4">
+          <Link
+            href="/app"
+            className={cn(buttonVariants({ size: "lg" }), "bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700")}
+          >
+            Open App
+          </Link>
+          <Link href="/app" className={cn(buttonVariants({ size: "lg", variant: "outline" }))}>
+            View Demo Workspace
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -362,22 +469,14 @@ function Footer() {
         <p className="text-sm text-muted-foreground">
           Local-first Markdown workspaces.
         </p>
-        <div className="flex gap-6">
-          <a
-            href="https://github.com/iaminci/opsly-md"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            GitHub
-          </a>
-          <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-            Docs
-          </a>
-          <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
-            Issues
-          </a>
-        </div>
+        <a
+          href="https://github.com/iaminci/opsly-md"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-muted-foreground hover:text-foreground"
+        >
+          GitHub
+        </a>
       </div>
     </footer>
   );
@@ -389,13 +488,14 @@ export function LandingPage() {
       <Navbar />
       <main>
         <Hero />
-        <WhySection />
-        <ProductPreview />
-        <FeaturesGrid />
-        <PrivacySection />
-        <HowItWorks />
-        <StorageNotice />
+        <LiveMarkdownDemo />
+        <InterfaceOverview />
+        <CorePrinciples />
+        <Capabilities />
+        <LocalStorageTransparency />
+        <Architecture />
         <OpenSourceSection />
+        <FinalCTA />
       </main>
       <Footer />
     </div>

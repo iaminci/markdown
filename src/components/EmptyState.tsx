@@ -54,7 +54,7 @@ const FEATURES = [
   "Search across all documents",
   "Edit, rename, and download as .md",
   "Import and export workspaces (JSON)",
-  "Dark mode with 11 accent color themes",
+  "Dark mode with 7 accent color themes",
   "Local-first, no account, no tracking",
 ];
 

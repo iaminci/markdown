@@ -16,11 +16,7 @@ export type DarkAccent =
   | "emerald"
   | "violet"
   | "rose"
-  | "pink"
-  | "neon-blue"
-  | "teal"
   | "indigo"
-  | "fuchsia"
   | "orange";
 
 interface ThemeContextValue {
@@ -32,17 +28,35 @@ interface ThemeContextValue {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-const DARK_ACCENT_KEY = "md-viewer-dark-accent";
+const DARK_ACCENT_KEY = "opsly-accent";
 
 const VALID_ACCENTS: DarkAccent[] = [
-  "amber", "sky", "emerald", "violet", "rose", "pink",
-  "neon-blue", "teal", "indigo", "fuchsia", "orange",
+  "amber",
+  "sky",
+  "emerald",
+  "violet",
+  "rose",
+  "indigo",
+  "orange",
 ];
 
+const DEFAULT_ACCENT: DarkAccent = "orange";
+
 function getInitialAccent(): DarkAccent {
-  if (typeof window === "undefined") return "amber";
-  const stored = localStorage.getItem(DARK_ACCENT_KEY) as DarkAccent | null;
-  return stored && VALID_ACCENTS.includes(stored) ? stored : "amber";
+  if (typeof window === "undefined") return DEFAULT_ACCENT;
+  let stored = localStorage.getItem(DARK_ACCENT_KEY) as DarkAccent | null;
+  if (!stored) {
+    const legacy = localStorage.getItem("md-viewer-dark-accent") as DarkAccent | null;
+    if (legacy && VALID_ACCENTS.includes(legacy)) {
+      stored = legacy;
+      localStorage.setItem(DARK_ACCENT_KEY, legacy);
+    }
+  }
+  const accent = stored && VALID_ACCENTS.includes(stored) ? stored : DEFAULT_ACCENT;
+  if (!stored || !VALID_ACCENTS.includes(stored)) {
+    localStorage.setItem(DARK_ACCENT_KEY, accent);
+  }
+  return accent;
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -72,10 +86,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("md-viewer-theme", newTheme);
     document.documentElement.classList.toggle("dark", newTheme === "dark");
     if (newTheme === "dark") {
-      document.documentElement.setAttribute(
-        "data-dark-accent",
-        (localStorage.getItem(DARK_ACCENT_KEY) as DarkAccent) || "amber"
-      );
+      const stored = localStorage.getItem(DARK_ACCENT_KEY) as DarkAccent | null;
+      const validAccent = stored && VALID_ACCENTS.includes(stored) ? stored : DEFAULT_ACCENT;
+      document.documentElement.setAttribute("data-dark-accent", validAccent);
     } else {
       document.documentElement.removeAttribute("data-dark-accent");
     }
@@ -95,7 +108,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         value={{
           theme: "light",
           setTheme,
-          darkAccent: "amber",
+          darkAccent: DEFAULT_ACCENT,
           setDarkAccent,
         }}
       >
