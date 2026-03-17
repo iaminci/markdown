@@ -287,7 +287,7 @@ function WorkspaceSection({
             <Library className="size-4 shrink-0 text-orange-500/80 dark:[color:var(--dm-text-muted)]" />
             <span className="truncate text-left">{workspace.name}</span>
           </div>
-          <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
+          <div className="ml-auto shrink-0 opacity-0 transition-opacity group-hover/ws:opacity-100" onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger
                 nativeButton={false}
@@ -517,7 +517,7 @@ function FolderItem({
           <FolderIcon className="size-4 shrink-0 text-orange-500/80 dark:[color:var(--dm-text-muted)]" />
           <span className="truncate text-left">{folder.name}</span>
         </div>
-        <div className="ml-auto shrink-0" onClick={(e) => e.stopPropagation()}>
+        <div className="ml-auto shrink-0 opacity-0 transition-opacity group-hover/folder:opacity-100" onClick={(e) => e.stopPropagation()}>
           <DropdownMenu>
             <DropdownMenuTrigger
               nativeButton={false}
@@ -670,7 +670,7 @@ function FileItem({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="size-6 shrink-0 rounded-md transition-opacity text-orange-600 dark:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
+                className="size-6 shrink-0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity text-orange-600 dark:[color:var(--dm-text-muted)] dark:hover:[color:var(--dm-text)]"
                 onClick={(e) => e.stopPropagation()}
               >
                 <MoreHorizontal className="size-3.5" />
