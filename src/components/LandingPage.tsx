@@ -115,7 +115,7 @@ function Navbar() {
           </a>
           <ThemeToggle />
           <Link
-            href="/app"
+            href="/app?loadSample=1"
             className={cn(
               "inline-flex h-9 items-center justify-center rounded-lg px-4 text-sm font-medium",
               "bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700"
@@ -145,12 +145,12 @@ function Hero() {
         </p>
         <div className="mt-10 flex flex-wrap justify-center gap-4">
           <Link
-            href="/app"
+            href="/app?loadSample=1"
             className={cn(buttonVariants({ size: "lg" }), "bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700")}
           >
             Open App
           </Link>
-          <Link href="/app" className={cn(buttonVariants({ size: "lg", variant: "outline" }))}>
+          <Link href="/app?loadSample=1" className={cn(buttonVariants({ size: "lg", variant: "outline" }))}>
             View Example Workspace
           </Link>
         </div>
@@ -444,12 +444,12 @@ function FinalCTA() {
         </h2>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
           <Link
-            href="/app"
+            href="/app?loadSample=1"
             className={cn(buttonVariants({ size: "lg" }), "bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-700")}
           >
             Open App
           </Link>
-          <Link href="/app" className={cn(buttonVariants({ size: "lg", variant: "outline" }))}>
+          <Link href="/app?loadSample=1" className={cn(buttonVariants({ size: "lg", variant: "outline" }))}>
             View Demo Workspace
           </Link>
         </div>

@@ -72,7 +72,7 @@ import { toast } from "sonner";
 import { CommandPalette } from "./CommandPalette";
 import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
+import { cn, getFirstHeading } from "@/lib/utils";
 
 interface SidebarProps {
   documents: Document[];
@@ -850,8 +850,7 @@ export function Sidebar({
               onClick={() => {
                 const trimmed = pasteValue.trim();
                 if (!trimmed) return;
-                const firstLine = trimmed.split("\n")[0]?.trim() || "";
-                const title = firstLine || "Untitled";
+                const title = getFirstHeading(trimmed) ?? (trimmed.split("\n")[0]?.trim() || "Untitled");
                 onAddDocument(title, trimmed, selectedWorkspaceId ?? undefined, null);
                 setPasteValue("");
                 setShowPaste(false);

@@ -12,11 +12,6 @@ function hashContent(s: string): number {
   return h;
 }
 
-function getFirstHeading(content: string): string | null {
-  const match = content.match(/^#{1,6}\s+(.+)$/m);
-  return match ? match[1].replace(/#+\s*$/, "").trim() : null;
-}
-
 function getSubtitle(content: string): string | null {
   const lines = content.split("\n");
   const firstHeadingIdx = lines.findIndex((l) => /^#{1,6}\s+/.test(l));
@@ -25,6 +20,7 @@ function getSubtitle(content: string): string | null {
     const para: string[] = [];
     for (const line of afterHeading) {
       if (/^\s*$/.test(line)) break;
+      if (/^#{1,6}\s+/.test(line)) break; // stop at next heading, don't include raw markdown
       para.push(line.trim());
     }
     return para.join(" ").trim() || null;
@@ -41,6 +37,8 @@ import {
   deleteDocument,
   DuplicateNameError,
 } from "@/lib/storage";
+import { getFirstHeading } from "@/lib/utils";
+import { SAMPLE_MARKDOWN } from "@/lib/sample-document";
 import { EmptyState } from "@/components/EmptyState";
 import { Sidebar } from "@/components/Sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -141,6 +139,8 @@ function AppContent() {
     setDocuments(docs);
   }, []);
 
+  const loadSampleHandledRef = useRef(false);
+
   useEffect(() => {
     refresh().finally(() => setLoading(false));
   }, [refresh]);
@@ -230,13 +230,42 @@ function AppContent() {
 
   const handleEditSave = useCallback(async () => {
     if (!currentDoc) return;
-    const updated = await updateDocument(currentDoc.id, { content: editContent });
-    if (updated) {
-      setCurrentDoc(updated);
-      await refresh();
+    try {
+      const newTitle = getFirstHeading(editContent) ?? currentDoc.title;
+      const updated = await updateDocument(currentDoc.id, {
+        content: editContent,
+        title: newTitle,
+      });
+      if (updated) {
+        setCurrentDoc(updated);
+        await refresh();
+      }
+      setEditOpen(false);
+    } catch (err) {
+      if (err instanceof DuplicateNameError) {
+        toast.error(err.message);
+      } else {
+        toast.error("Failed to save document.");
+      }
     }
-    setEditOpen(false);
   }, [currentDoc, editContent, refresh]);
+
+  useEffect(() => {
+    const loadSample = searchParams.get("loadSample");
+    if (
+      !loading &&
+      loadSample === "1" &&
+      documents.length === 0 &&
+      !loadSampleHandledRef.current
+    ) {
+      loadSampleHandledRef.current = true;
+      handleAddDocument("Welcome", SAMPLE_MARKDOWN);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("loadSample");
+      const newSearch = params.toString();
+      router.replace(pathname + (newSearch ? `?${newSearch}` : ""), { scroll: false });
+    }
+  }, [loading, documents.length, searchParams, pathname, router, handleAddDocument]);
 
   if (loading) {
     return (
@@ -295,19 +324,14 @@ function AppContent() {
                     <div className="min-w-0 flex-1">
                       {(() => {
                         const firstHeading = getFirstHeading(currentDoc.content);
-                        const titleNorm = currentDoc.title.replace(/^#+\s*/, "").trim() || currentDoc.title;
-                        const headingMatchesTitle =
-                          firstHeading &&
-                          titleNorm.toLowerCase() === firstHeading.toLowerCase();
-                        const isReadme = /^readme(\s*\(\d+\))*$/i.test(currentDoc.title);
-                        if (!(isReadme || headingMatchesTitle)) {
-                          return (
-                            <h1 className="text-3xl font-semibold text-foreground">
-                              {currentDoc.title}
-                            </h1>
-                          );
-                        }
-                        return null;
+                        // When content has a heading, it will be rendered by MarkdownRenderer—don't duplicate.
+                        if (firstHeading) return null;
+                        // No heading in content: show doc.title as fallback.
+                        return (
+                          <h1 className="text-3xl font-semibold text-foreground">
+                            {currentDoc.title}
+                          </h1>
+                        );
                       })()}
                       {getSubtitle(currentDoc.content) && (
                         <p className="mt-1 text-muted-foreground text-sm">
@@ -352,7 +376,7 @@ function AppContent() {
               </div>
             </>
           ) : (
-            <EmptyState onLoadSample={handleAddDocument} />
+            <EmptyState />
           )}
           </div>
 
