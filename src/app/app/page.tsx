@@ -130,6 +130,8 @@ function AppContent() {
   const [currentDoc, setCurrentDoc] = useState<Document | null>(null);
   const navigatingToHomeRef = useRef(false);
   const justSelectedDocIdRef = useRef<string | null>(null);
+  const currentDocIdRef = useRef<string | null>(null);
+  currentDocIdRef.current = currentDoc?.id ?? null;
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
   const [editContent, setEditContent] = useState("");
@@ -157,14 +159,17 @@ function AppContent() {
       }
       return;
     }
-    if (currentDoc && !documents.find((d) => d.id === currentDoc.id)) {
+    if (currentDocIdRef.current && !documents.find((d) => d.id === currentDocIdRef.current)) {
       setCurrentDoc(documents[0] ?? null);
       return;
     }
-    // Skip URL→state sync when user just clicked a doc; trust onSelectDocument's state.
-    // Prevents Effect 1 from reverting to stale URL before router.replace completes.
+    // Skip URL→state sync when user just selected/added a doc; trust onSelectDocument/handleAddDocument.
+    // Defer clearing so React Strict Mode's double effect run doesn't override.
     if (justSelectedDocIdRef.current) {
-      justSelectedDocIdRef.current = null;
+      const id = justSelectedDocIdRef.current;
+      queueMicrotask(() => {
+        justSelectedDocIdRef.current = null;
+      });
       return;
     }
     const docIdFromUrl = searchParams.get("doc");
@@ -174,10 +179,10 @@ function AppContent() {
     const preferred = preferredId
       ? documents.find((d) => d.id === preferredId)
       : null;
-    if (preferred) {
+    if (preferred && preferred.id !== currentDocIdRef.current) {
       setCurrentDoc(preferred);
     }
-  }, [documents, searchParams, currentDoc]);
+  }, [documents, searchParams]);
 
   useEffect(() => {
     if (!currentDoc || typeof window === "undefined") return;
@@ -201,8 +206,13 @@ function AppContent() {
           { workspaceId: wsId, folderId: folderId ?? null }
         );
         const updated = await getDocuments();
+        justSelectedDocIdRef.current = doc.id;
+        currentDocIdRef.current = doc.id;
         setDocuments(updated);
         setCurrentDoc(doc);
+        const params = new URLSearchParams(searchParams.toString());
+        params.set("doc", doc.id);
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
       } catch (err) {
         if (err instanceof DuplicateNameError) {
           toast.error(err.message);
@@ -211,7 +221,7 @@ function AppContent() {
         }
       }
     },
-    []
+    [router, pathname, searchParams]
   );
 
   const handleDeleteDocument = useCallback(async (id: string) => {

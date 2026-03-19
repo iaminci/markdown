@@ -847,11 +847,11 @@ export function Sidebar({
               Cancel
             </Button>
             <Button
-              onClick={() => {
+              onClick={async () => {
                 const trimmed = pasteValue.trim();
                 if (!trimmed) return;
                 const title = getFirstHeading(trimmed) ?? (trimmed.split("\n")[0]?.trim() || "Untitled");
-                onAddDocument(title, trimmed, selectedWorkspaceId ?? undefined, null);
+                await onAddDocument(title, trimmed, selectedWorkspaceId ?? undefined, null);
                 setPasteValue("");
                 setShowPaste(false);
               }}

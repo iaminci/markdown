@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface TocItem {
@@ -44,49 +44,64 @@ function extractHeadings(markdown: string): TocItem[] {
 }
 
 export function TableOfContents({ content, scrollContainerRef }: TableOfContentsProps) {
-  const headings = extractHeadings(content);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const headings = useMemo(() => extractHeadings(content), [content]);
+  // Initialize with first heading; component remounts on doc change (key), so this stays correct
+  const [activeId, setActiveId] = useState<string | null>(() => extractHeadings(content)[0]?.id ?? null);
   const tocRef = useRef<HTMLUListElement>(null);
   const activeItemRef = useRef<HTMLAnchorElement | null>(null);
+  const tickingRef = useRef(false);
+  const lastSetIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (headings.length === 0) return;
-    const container = scrollContainerRef?.current ?? document;
+    const heads = extractHeadings(content);
+    if (heads.length === 0) return;
     const scrollEl = scrollContainerRef?.current ?? document.documentElement;
+    const root = scrollContainerRef?.current ?? null;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const id = entry.target.getAttribute("id");
-            if (id) setActiveId(id);
-          }
+    const findActiveId = (): string | null => {
+      const viewportTop = root ? scrollEl.scrollTop : window.scrollY;
+      const offset = 100;
+      let active: string | null = null;
+      for (let i = heads.length - 1; i >= 0; i--) {
+        const el = document.getElementById(heads[i].id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        const elTop = root ? rect.top + scrollEl.scrollTop : rect.top + window.scrollY;
+        if (elTop <= viewportTop + offset) {
+          active = heads[i].id;
+          break;
         }
-      },
-      {
-        root: scrollContainerRef?.current ?? null,
-        rootMargin: "-80px 0px -80% 0px",
-        threshold: 0,
       }
-    );
+      return active ?? heads[0]?.id ?? null;
+    };
 
-    for (const { id } of headings) {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
-  }, [headings, content, scrollContainerRef]);
+    let cancelled = false;
+    const updateActiveId = () => {
+      if (tickingRef.current || cancelled) return;
+      tickingRef.current = true;
+      setTimeout(() => {
+        if (cancelled) return;
+        tickingRef.current = false;
+        const id = findActiveId();
+        if (!id) return;
+        if (id === lastSetIdRef.current) return;
+        lastSetIdRef.current = id;
+        setActiveId(id);
+      }, 0);
+    };
 
-  useEffect(() => {
-    if (!activeId || !tocRef.current || !activeItemRef.current) return;
-    const item = activeItemRef.current;
-    const list = tocRef.current;
-    const listRect = list.getBoundingClientRect();
-    const itemRect = item.getBoundingClientRect();
-    if (itemRect.bottom > listRect.bottom || itemRect.top < listRect.top) {
-      item.scrollIntoView({ block: "nearest", behavior: "smooth" });
-    }
-  }, [activeId]);
+    // No initial setState in effect - avoids update loop. Highlight appears on first scroll.
+
+    const onScroll = () => updateActiveId();
+    const cleanup = () => {
+      cancelled = true;
+      if (root) root.removeEventListener("scroll", onScroll);
+      else window.removeEventListener("scroll", onScroll);
+    };
+    if (root) root.addEventListener("scroll", onScroll, { passive: true });
+    else window.addEventListener("scroll", onScroll, { passive: true });
+    return cleanup;
+  }, [content]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
