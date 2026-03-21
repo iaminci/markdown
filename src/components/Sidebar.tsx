@@ -865,7 +865,7 @@ export function Sidebar({
       </Dialog>
 
       <AlertDialog open={exportConfirmDialogOpen} onOpenChange={setExportConfirmDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="ring-orange-500/50 dark:ring-[color:var(--dm-border)]">
           <AlertDialogHeader>
             <AlertDialogTitle>Export workspace</AlertDialogTitle>
             <AlertDialogDescription>
@@ -875,7 +875,10 @@ export function Sidebar({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void handleExportConfirm()}>
+            <AlertDialogAction
+              onClick={() => void handleExportConfirm()}
+              className="bg-orange-600 text-white hover:bg-orange-700 dark:[background-color:var(--dm-btn)] dark:hover:[background-color:var(--dm-btn-hover)]"
+            >
               Export
             </AlertDialogAction>
           </AlertDialogFooter>
