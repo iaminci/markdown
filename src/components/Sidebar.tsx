@@ -436,7 +436,7 @@ export function Sidebar({
       await refreshTreeData();
       onRefresh();
     } catch {
-      window.alert("Failed to import workspace. The file may be invalid or corrupted.");
+      toast.error("Failed to import workspace. The file may be invalid or corrupted.");
     }
     e.target.value = "";
   };
