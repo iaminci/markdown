@@ -69,9 +69,21 @@ function SidebarProvider({
   const isMobile = useIsMobile()
   const [openMobile, setOpenMobile] = React.useState(false)
 
-  // This is the internal state of the sidebar. Always start expanded on load.
   const [_open, _setOpen] = React.useState(defaultOpen)
   const open = openProp ?? _open
+
+  // Restore sidebar state from cookie on mount (persists across refreshes)
+  React.useEffect(() => {
+    if (openProp !== undefined) return // Controlled mode – don't override
+    const match = document.cookie.match(
+      new RegExp(`${SIDEBAR_COOKIE_NAME}=([^;]+)`)
+    )
+    if (match) {
+      const val = match[1].trim()
+      if (val === "false") _setOpen(false)
+      else if (val === "true") _setOpen(true)
+    }
+  }, [openProp])
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value
