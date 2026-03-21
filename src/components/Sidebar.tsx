@@ -67,10 +67,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Plus, Upload, Download, Trash2, FileText, Search as SearchIcon, ClipboardPaste, FileUp, ChevronRight, ChevronLeft } from "lucide-react";
+import { Plus, Upload, Download, Trash2, FileText, Search as SearchIcon, ClipboardPaste, ChevronRight, ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { CommandPalette } from "./CommandPalette";
-import { Kbd } from "@/components/ui/kbd";
 import { Separator } from "@/components/ui/separator";
 import { cn, getFirstHeading } from "@/lib/utils";
 
@@ -520,12 +519,12 @@ export function Sidebar({
         {/* Icon bar - visible only when sidebar is collapsed to icon mode */}
         {isCollapsed && (
         <div
-          className="flex flex-col flex-1 items-center pt-1.5 pb-4 text-sidebar-foreground"
+          className="flex flex-col flex-1 min-h-0 text-sidebar-foreground"
           onMouseEnter={() => hoverExpandEnabled && setOpen(true)}
           onMouseLeave={() => hoverExpandEnabled && setOpen(false)}
         >
-          {/* Top: Navigation */}
-          <div className="flex flex-col items-center space-y-1">
+          {/* 1. Search - matches opened position 1 */}
+          <div className="shrink-0 flex flex-col items-center pt-1.5">
             <Tooltip>
               <TooltipTrigger
                 type="button"
@@ -535,14 +534,15 @@ export function Sidebar({
                 )}
                 onClick={() => setOpen(true)}
                 aria-label="Search Markdown Files"
-            >
-              <SearchIcon className="size-5" />
-            </TooltipTrigger>
-            <TooltipContent side="right" className="flex flex-col gap-0.5">
-              <span>Search Markdown Files</span>
-              <Kbd>⌘K</Kbd>
-            </TooltipContent>
-          </Tooltip>
+              >
+                <SearchIcon className="size-5" />
+              </TooltipTrigger>
+              <TooltipContent side="right">Search Markdown Files</TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* 2. Workspace switcher + Plus - matches opened position 2 */}
+          <div className="shrink-0 flex flex-col items-center gap-1 mt-1">
             <Tooltip>
               <TooltipTrigger
                 type="button"
@@ -557,10 +557,6 @@ export function Sidebar({
               </TooltipTrigger>
               <TooltipContent side="right">Documents</TooltipContent>
             </Tooltip>
-          </div>
-
-          {/* Middle: Actions */}
-          <div className="flex flex-col items-center mt-1 space-y-1">
             <Tooltip>
               <TooltipTrigger
                 type="button"
@@ -575,20 +571,13 @@ export function Sidebar({
               </TooltipTrigger>
               <TooltipContent side="right">Create Workspace</TooltipContent>
             </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                type="button"
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-sidebar-foreground transition-colors duration-150 hover:bg-muted [&_svg]:[stroke:var(--sidebar-foreground)]"
-                onClick={() => {
-                  setOpen(true);
-                  handleUploadFile(selectedWorkspaceId ?? sortedWorkspaces[0]?.id ?? "default", null);
-                }}
-                aria-label="Upload .md file"
-              >
-                <FileUp className="size-5" />
-              </TooltipTrigger>
-              <TooltipContent side="right">Upload .md file</TooltipContent>
-            </Tooltip>
+          </div>
+
+          {/* 3. Spacer for workspace tree area - matches opened scrollable middle */}
+          <div className="min-h-0 flex-1" aria-hidden />
+
+          {/* 4-7. Bottom action bar - matches opened: Paste, Import|Export, Delete */}
+          <div className="shrink-0 border-t border-orange-500/50 dark:[border-color:var(--dm-border)] flex flex-col items-center gap-1.5 py-2 px-0">
             <Tooltip>
               <TooltipTrigger
                 type="button"
@@ -597,11 +586,11 @@ export function Sidebar({
                   setOpen(true);
                   setShowPaste(true);
                 }}
-                aria-label="Paste"
+                aria-label="Paste Markdown"
               >
                 <ClipboardPaste className="size-5" />
               </TooltipTrigger>
-              <TooltipContent side="right">Paste .md</TooltipContent>
+              <TooltipContent side="right">Paste Markdown</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger
@@ -631,11 +620,6 @@ export function Sidebar({
               </TooltipTrigger>
               <TooltipContent side="right">Export Workspace</TooltipContent>
             </Tooltip>
-          </div>
-
-          {/* Bottom: Delete Everything */}
-          <div className="flex flex-col items-center mt-6 pt-4 flex-1 justify-end">
-            <Separator className="w-full mb-4 mx-2" />
             <Tooltip>
               <TooltipTrigger
                 type="button"
